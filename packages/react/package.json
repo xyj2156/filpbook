@@ -1,8 +1,8 @@
 {
-  "name": "@flipbook/react",
+  "name": "@x-ac/filpbook-react",
   "version": "0.1.0",
   "type": "module",
-  "description": "React wrapper for @flipbook/core",
+  "description": "React wrapper for @x-ac/filpbook-core",
   "sideEffects": false,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -19,7 +19,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@flipbook/core": "workspace:*"
+    "@x-ac/filpbook-core": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18.0.0",

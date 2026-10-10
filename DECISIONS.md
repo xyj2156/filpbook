@@ -11,13 +11,16 @@
 - 可逆性：低——这是对外契约，改的话用户侧 slot 写法整体重排。
 - 退路：需要 sheet 语义时在封装层加 `<FlipSheet>` 适配器，core 不动。
 
-## D-02 `[代拍]` 包名 `@flipbook/core|vue|react`
+## D-02 包名 `@x-ac/filpbook-core|vue|react`
 
-目录名 `filp-book` 是 `flip-book` 的笔误，保留目录不动，包名用正确拼写。
+用户拍板：作用域 `@x-ac`（已注册组织），包名保留 `filp` 拼写，与仓库目录名 `filp-book`、
+既有 `vue-filpbook` 一致；根私有包同步改名 `filp-book`。
 
-- 依据：未发布，现在改零成本，发布后改要走 deprecate。
-- 可逆性：高（尚未发布）。
-- 退路：发布前一次性改名。
+- 依据：组织作用域与既有命名归用户持有，不是助手可以"顺手改正拼写"的对象。
+- 可逆性：发布前改一次即可，发布后要走 deprecate，成本陡增。
+- 退路：无（已定）。
+
+`keywords` 里仍留正确拼写 `flipbook` 供 npm 搜索命中——那是检索标签，不是标识。
 
 ## D-03 `[代拍]` 奇数页自动补白页
 
@@ -39,7 +42,7 @@ core 为每页维护一个宿主 div；框架封装用 Teleport / createPortal �
 turn.js 的 `hard`（硬壳 rotateY）与 `zoom.js`（放大）进 roadmap，不进第一版。
 
 - 依据：用户目标是"主要实现翻书效果"，卷曲是效果本体；hard 是另一套 transform 分支，可后补且互不干扰。
-- 可逆性：高——`_fold` 按 effect 分支留了扩展位。
+- 可逆性：高——hard 效果将来另写成并列的 `foldHard()`，不动 `fold()` 的签名。
 
 ## D-06 `[代拍]` 尺寸模型：固定设计尺寸 + core 等比 fit
 
@@ -85,9 +88,11 @@ turn.js 的 `hard`（硬壳 rotateY）与 `zoom.js`（放大）进 roadmap，不
 
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
-旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实质的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。
+旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实现的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。
 
 ## 助手撤回的错误结论（供审阅）
 
+- **把 `filp` 当笔误，自作主张"改正"成 `flip` 还写进代拍记录**——用户两轮纠正（先给作用域 `@x-ac`，
+  再明确保留 `filp` 拼写）。仓库与包的标识拼写不属于"可逆即可代拍"的范围。
 - 上一轮我提"封底漏画"时同时归因于 z-index 策略与缺 range 管理——z-index 那条是多余的，根因只是所有页 DOM 常驻且未被移出可见区。
 - 上一轮我提"fitScale 未生效"暗示是 Vue 封装 holder 缺宽高所致（React 版有 `style={{width,height}}`）——未实测，不下结论，留到 D-06 落地时用截图验证。

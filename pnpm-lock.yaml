@@ -40,7 +40,7 @@ importers:
 
   packages/react:
     dependencies:
-      '@flipbook/core':
+      '@x-ac/filpbook-core':
         specifier: workspace:*
         version: link:../core
       react:
@@ -52,7 +52,7 @@ importers:
 
   packages/vue:
     dependencies:
-      '@flipbook/core':
+      '@x-ac/filpbook-core':
         specifier: workspace:*
         version: link:../core
       vue:

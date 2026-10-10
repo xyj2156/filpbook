@@ -1,12 +1,12 @@
 {
-  "name": "flip-book",
+  "name": "filp-book",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "Framework-agnostic page-curl flip book engine with Vue 3 and React wrappers",
   "scripts": {
     "dev": "vite",
-    "build": "pnpm -r --filter @flipbook/core --filter @flipbook/vue --filter @flipbook/react run build",
+    "build": "pnpm -r --filter @x-ac/filpbook-core --filter @x-ac/filpbook-vue --filter @x-ac/filpbook-react run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm -r run test",
     "shots": "node tools/shoot.mjs"

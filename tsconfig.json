@@ -4,9 +4,9 @@
     "noEmit": true,
     "types": ["vite/client", "node"],
     "paths": {
-      "@flipbook/core": ["./packages/core/src/index.ts"],
-      "@flipbook/vue": ["./packages/vue/src/index.ts"],
-      "@flipbook/react": ["./packages/react/src/index.ts"]
+      "@x-ac/filpbook-core": ["./packages/core/src/index.ts"],
+      "@x-ac/filpbook-vue": ["./packages/vue/src/index.ts"],
+      "@x-ac/filpbook-react": ["./packages/react/src/index.ts"]
     }
   },
   "include": ["playground", "tools", "packages/core/src", "packages/react/src", "packages/vue/src"]

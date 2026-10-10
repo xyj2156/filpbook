@@ -12,7 +12,7 @@ export default defineConfig({
       fileName: () => 'index.js',
     },
     rollupOptions: {
-      external: ['vue', '@flipbook/core'],
+      external: ['vue', '@x-ac/filpbook-core'],
     },
   },
 })

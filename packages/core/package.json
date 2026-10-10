@@ -1,5 +1,5 @@
 {
-  "name": "@flipbook/core",
+  "name": "@x-ac/filpbook-core",
   "version": "0.1.0",
   "type": "module",
   "description": "Framework-agnostic page-curl flip book engine",

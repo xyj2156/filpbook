@@ -1,6 +1,6 @@
 // 引擎取证页：不带任何框架，直接驱动 core。
 // 每个开发单元的视觉验证都在这里跑（见 tools/shoot.mjs）。
-import { fold, diagOf } from '@flipbook/core'
+import { fold, diagOf } from '@x-ac/filpbook-core'
 
 const size = { width: 400, height: 600 }
 const stage = document.getElementById('stage')!
