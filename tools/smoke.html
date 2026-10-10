@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>flipbook · engine harness</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #26262a; }
+      body { display: grid; place-items: center; font: 14px/1.5 system-ui, sans-serif; }
+      #stage { position: relative; }
+      .probe { position: absolute; inset: 0; display: grid; place-items: center; color: #eee; }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <script type="module" src="./smoke.ts"></script>
+  </body>
+</html>
