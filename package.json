@@ -7,10 +7,12 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm -r --filter @flipbook/core --filter @flipbook/vue --filter @flipbook/react run build",
-    "typecheck": "tsc -p tsconfig.json --noEmit && pnpm -r run typecheck",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm -r run test",
     "shots": "node tools/shoot.mjs"
   },
   "devDependencies": {
+    "@types/node": "^26.6.4",
     "@vitejs/plugin-react": "^5.0.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "react": "^19.0.0",

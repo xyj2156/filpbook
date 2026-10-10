@@ -63,6 +63,26 @@ turn.js 的 `hard`（硬壳 rotateY）与 `zoom.js`（放大）进 roadmap，不
 - 依据：本机无浏览器自动化依赖；折页是纯视觉正确性问题，typecheck 与断言都测不出"看起来对不对"。
 - 可逆性：高。
 
+## D-09 `[代拍]` 源码内相对导入一律写 `.js` 说明符，测试跑编译产物
+
+`import { x } from './corners.js'`（指向 `corners.ts`），测试脚本先 `tsc` 到 `.tmp-test/` 再 `node --test`。
+
+- 依据：本想用 TS 5.7 的 `rewriteRelativeImportExtensions` 让 node 直接跑 `.ts`，实测它只改写 JS 产出，
+  `dist/index.d.ts` 里仍留 `'./corners.js'`→`'./corners.ts'`，发布出去消费方类型解析直接断。
+  写 `.js` 说明符则 JS/d.ts 两边都正确，且测试跑的是真正要发布的产物。
+- 可逆性：高（一次 sed 能改回）。
+- 退路：若哪天 node 原生解析够好用，可换回 `.ts` 说明符 + 删掉构建前缀步骤。
+
+## D-10 `[代拍]` 折点安全夹持：不继承 turn.js 的 NaN
+
+`clampFoldPoint()` 把折点收进「锚点同侧对角线长度」的框内再算。
+
+- 依据：turn.js 把指针坐标原样喂进数学，拖得离页足够远时 `sqrt(h²+2·mid.x·rel.x)` 判别式转负，
+  返回值整体变 NaN，页面僵在最后一帧。实测 `tr @ (-5000,-5000)`、`bl @ (5000,5000)` 复现。
+  展开判别式得 `diag² - p.x²`（右角）/ `diag² + w² - (p.x-w)²`（左角），故夹进 diag 即恒非负。
+- 可逆性：高（纯函数前置一步）。
+- 退路：夹持范围放大到 2×diag 也只是让"已经翻到底"的视觉饱和态更晚出现，不影响正常交互。
+
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
 旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实质的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。

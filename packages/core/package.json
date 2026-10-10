@@ -16,7 +16,8 @@
   "files": ["dist", "README.md"],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsc -p tsconfig.test.json && node --test \".tmp-test/*.test.js\""
   },
   "keywords": ["flipbook", "page-flip", "turn", "curl", "ebook"],
   "license": "MIT"

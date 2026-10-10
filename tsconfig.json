@@ -2,12 +2,12 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "paths": {
       "@flipbook/core": ["./packages/core/src/index.ts"],
       "@flipbook/vue": ["./packages/vue/src/index.ts"],
       "@flipbook/react": ["./packages/react/src/index.ts"]
     }
   },
-  "include": ["playground", "packages/core/src", "packages/react/src", "packages/vue/src"]
+  "include": ["playground", "tools", "packages/core/src", "packages/react/src", "packages/vue/src"]
 }
