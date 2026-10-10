@@ -5,3 +5,5 @@ dist/
 .DS_Store
 .shots/
 *.log
+
+tools/vendor/

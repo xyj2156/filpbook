@@ -1,7 +1,12 @@
 // 引擎取证页：不带任何框架，直接驱动 core。
 // 每个单元的视觉验证都在这里跑（见 tools/shoot.mjs）。
-// 可用 query 控制：?pages=6&page=1&display=double|single&direction=ltr|rtl&blank=1
-import { FlipBook } from '@x-ac/filpbook-core'
+//
+// query：
+//   pages=6&page=3&display=double|single&direction=ltr|rtl&blank=1&nogradient=1
+//   fold=br:0.5        把「折页进度」0..1 静态画出来（锚点 -> 完全翻过去，直线插值）
+//   fold=br:200,500    直接给页内折点坐标
+//   foldpage=4         指定翻哪一页（默认当前 view 的右页）
+import { FlipBook, cornerAnchor, cornerTarget, type Corner } from '@x-ac/filpbook-core'
 
 const q = new URLSearchParams(location.search)
 const pageCount = Number(q.get('pages') ?? 6)
@@ -23,6 +28,7 @@ const book = new FlipBook(stage, {
   direction,
   startPage,
   blankPage: q.get('blank') === '1',
+  gradients: q.get('nogradient') !== '1',
 })
 
 // 只给真页填内容；补出来的白页应当保持空白
@@ -33,12 +39,55 @@ for (let i = 1; i <= book.pageCount; i++) {
   host.innerHTML = `<div class="probe"><b>第 ${i} 页</b><span>${display} · ${direction}</span></div>`
 }
 
+const spec = q.get('fold')
+if (spec) {
+  const [corner, coords] = spec.split(':')
+  const view = book.view()
+  const page = Number(q.get('foldpage') ?? (view[1] || view[0]))
+  let at = { x: 0, y: 0 }
+  if (coords?.includes(',')) {
+    const [x, y] = coords.split(',').map(Number)
+    at = { x, y }
+  } else {
+    const t = Number(coords ?? 0.5)
+    const a = cornerAnchor(corner as Corner, PAGE)
+    const b = cornerTarget(corner as Corner, PAGE)
+    at = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }
+  }
+  book.foldPage(page, corner as Corner, at)
+}
+
 const info = document.createElement('div')
 info.style.cssText = 'position:absolute;left:0;top:-26px;color:#bbb;font:13px system-ui'
 info.textContent =
   `page ${book.page} · view [${book.view().join(',')}] · ` +
-  `range [${book.range().join(',')}] · total ${book.total}`
+  `range [${book.range().join(',')}] · total ${book.total}` +
+  (spec ? ` · fold ${spec} @ page ${q.get('foldpage') ?? book.view()[1]}` : '')
 stage.appendChild(info)
+
+// ?dump=1 → 把整棵 DOM 的矩形与 inline style 打出来，配合 msedge --dump-dom
+// 与 tools/ref.html（真 turn.js）逐元素比对
+if (q.get('dump')) {
+  const pre = document.createElement('pre')
+  pre.id = 'dump'
+  pre.style.cssText = 'position:fixed;left:-9999px;top:0;font:11px monospace;white-space:pre'
+  document.body.appendChild(pre)
+  const lines: string[] = []
+  const walk = (node: Element, depth: number): void => {
+    const r = node.getBoundingClientRect()
+    const cls = node.className && typeof node.className === 'string' && node.className.trim()
+      ? `.${node.className.trim().split(/\s+/).join('.')}` : ''
+    const ds = Object.entries((node as HTMLElement).dataset).map(([k, v]) => `[${k}=${v}]`).join('')
+    lines.push(
+      `${'  '.repeat(depth)}<${node.tagName.toLowerCase()}${cls}${ds}> ` +
+      `${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}x${Math.round(r.height)} || ` +
+      `${node.getAttribute('style') || ''}`,
+    )
+    for (const child of Array.from(node.children)) walk(child, depth + 1)
+  }
+  walk(stage, 0)
+  pre.textContent = lines.join('\n')
+}
 
 ;(window as unknown as { __book: FlipBook }).__book = book
 ;(window as unknown as { __ready: boolean }).__ready = true

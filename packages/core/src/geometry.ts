@@ -52,6 +52,10 @@ export interface Fold {
   corner: Corner
   /** 夹持后的折点 */
   point: Point
+  /** 被翻的角在上边（否则下边） */
+  top: boolean
+  /** 被翻的角在左边（否则右边） */
+  left: boolean
   /** 主旋转角（度，含符号） */
   angle: number
   /** alpha 原始弧度，渐变方向要用 */
@@ -224,6 +228,8 @@ export function fold(input: FoldInput): Fold {
   return {
     corner,
     point: p,
+    top,
+    left,
     angle,
     alpha,
     translate,

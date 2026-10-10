@@ -8,7 +8,6 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const PORT = 5199
-const BASE = `http://localhost:${PORT}/tools/smoke.html`
 
 const EDGE_CANDIDATES = [
   'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
@@ -31,6 +30,7 @@ const query = argv.filter((a) => !a.startsWith('--')).join('&')
 const w = flags.w || 1280
 const h = flags.h || 800
 const budget = flags.budget || 6000
+const BASE = `http://localhost:${PORT}/tools/${flags.html || 'smoke'}.html`
 const out = resolve(ROOT, '.shots', `${name}.png`)
 mkdirSync(dirname(out), { recursive: true })
 
