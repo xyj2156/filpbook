@@ -116,6 +116,27 @@ preventDefault + setPointerCapture（拖出窗口仍跟手；取证页的合成�
 - 可逆性：高。
 - 退路：动画层接入后本单元的可验面（跟手、判定、对拍）不受影响。
 
+## D-13 `[代拍]` 动画与掀角：参数照抄 turn.js，hover 默认开
+
+三段动画的时长/缓动/轨迹与 turn.js 逐项对齐：翻完 = 直线推向 cornerTarget，
+duration 选项默认 600；弹回 = retractHandles 贝塞尔，800；掀角 = 从锚点内缩 1px
+的近平态起步推向 cornerSize/2 处，500。缓动统一 easeOutCircular
+（`sqrt(1-(t-1)²)`，turn.js animatef 原式）。悬停起点规则照抄 `_showFoldedPage`：
+同角从当前折点续动，异角/无折层从近平态起步。接管规则：弹回/掀角途中按下=
+冻结当前帧重新起折；**翻完途中按下不响应**（对齐 isTurning）。补尾：turn.js
+没有离书处理（掀角会留在书上），我们补 pointerleave 即收。
+
+- 依据：三段时长是 turn.js 调过的值；easeOut 收尾缓符合"纸张落定"的手感；
+  翻完途中拒收新折避免半空页面被瞬间拽平的突兀。hover 在 turn.js 默认
+  **false**，这里默认 true 是应用户要求的有意偏离。
+- 可逆性：高（都在 InteractEnv/选项里）。
+- 退路：要改手感只动三个常量与 easeOutCircular；接管规则若嫌激进可整体换成
+  isTurning 式拒绝。
+
+取证附带发现：无头 Edge 的 `--virtual-time-budget` 只推进定时器、**不泵 rAF**，
+补间走不完。取证页 smoke.ts 把 rAF 换成 16ms setTimeout 驱动——只换调度器，
+补间/缓动/回调逻辑不变；真实浏览器不受影响。
+
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
 旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实现的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。

@@ -1,7 +1,8 @@
 export * from './corners.js'
 export * from './geometry.js'
 export * from './layout.js'
-export { FoldOverlay, type FoldEnv } from './fold.js'
+export { FoldOverlay, type FoldEnv, type FoldState } from './fold.js'
+export { FoldTween, easeOutCircular, type TweenSpec } from './anim.js'
 export {
   PointerController,
   foldTowardOf,

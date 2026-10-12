@@ -19,8 +19,16 @@
  */
 
 import { fold, type Fold } from './geometry.js'
-import { diagOf, type Corner, type Direction, type Display, type PageSize, type Point } from './corners.js'
+import { diagOf, point, type Corner, type Direction, type Display, type PageSize, type Point } from './corners.js'
 import { halfOf } from './layout.js'
+
+/** 折层快照：补间起点、悬停续动判断用 */
+export interface FoldState {
+  page: number
+  back: number
+  corner: Corner
+  point: Point
+}
 
 export interface FoldEnv {
   bookEl: HTMLElement
@@ -83,6 +91,14 @@ export class FoldOverlay {
   /** 被借去当纸背面的页码面（sync 要避让，别把它抢回裁切框） */
   get backPage(): number {
     return this.active?.back ?? 0
+  }
+
+  /** 当前折层快照（无折层时 null） */
+  get state(): FoldState | null {
+    const a = this.active
+    return a
+      ? { page: a.page, back: a.back, corner: a.corner, point: point(a.geom.point.x, a.geom.point.y) }
+      : null
   }
 
   /**

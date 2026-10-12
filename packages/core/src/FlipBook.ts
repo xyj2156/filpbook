@@ -41,6 +41,10 @@ export interface FlipBookOptions {
   interactive?: boolean
   /** 角部热区边长（设计 px）；默认 100 = turn.js flipOptions */
   cornerSize?: number
+  /** 悬停掀角提示（peel），默认开；turn.js 默认关，此处为有意偏离 */
+  hover?: boolean
+  /** 翻完动画时长（ms）；默认 600 = turn.js duration */
+  duration?: number
 }
 
 export type FlipBookEvent = 'change'
@@ -143,7 +147,10 @@ export class FlipBook {
           direction: this.direction,
           total: this._total,
           cornerSize: this.cornerSize,
+          hover: options.hover ?? true,
+          duration: options.duration ?? 600,
           currentPage: () => this._page,
+          foldState: () => this.fold.state,
           foldPage: (page, corner, at, toward) => this.foldPage(page, corner, at, toward),
           foldEnd: () => this.foldEnd(),
           goTo: (page) => this.goTo(page),
@@ -253,6 +260,7 @@ export class FlipBook {
     const next = clamp(Math.floor(page), 1, Math.max(1, this._total))
     if (next === this._page) return false
     // 折页途中跳页：先收起，免得借出去的背面页被布局抢走
+    this.interact?.abort() // 补间与悬停态一并中止，免得下一帧把折层救活
     this.fold.end()
     this._page = next
     this.sync()
