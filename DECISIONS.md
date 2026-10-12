@@ -88,6 +88,34 @@ turn.js 的 `hard`（硬壳 rotateY）与 `zoom.js`（放大）进 roadmap，不
 - 可逆性：高（纯函数前置一步）。
 - 退路：夹持范围放大到 2×diag 也只是让"已经翻到底"的视觉饱和态更晚出现，不影响正常交互。
 
+## D-11 `[代拍]` 拖拽意图：翻过去落在的页 = 纸的背面
+
+按压命中角后解析出 `{page, toward, target}`：page = double 下指针所在那半屏的页
+（用 halfOf 反查，不依赖 view 元组 [left,right] 的命名顺序，rtl 才不会错）/
+single 下就是当前页；toward = double 用页的天然方向（naturalToward）、single 用
+角侧 × 方向（foldTowardOf）；target = `backOf(page, toward)`。书到头时 backOf
+返回页自己 → 拒绝起折。
+
+- 依据：「翻过去落在背面」在 double/single × ltr/rtl 四种组合下统一成立，
+  免去 page±1/±2 的奇偶分叉；且与 turn.js 实测同构——它的 opts.next 就是背面页
+  （`next: (odd||single) ? page+1 : page-1`），_turnPage(next) 落地即此页。
+  命中后必须有背面才起折，对应 turn.js `_eventStart` 要求 `_foldingPage` 存在。
+- 可逆性：高（纯函数 pressIntentOf，只有 PointerController 消费）。
+- 退路：要支持连折多张或中途改目标，从 pressIntentOf 扩展，FoldOverlay 不动。
+
+## D-12 `[代拍]` 指针管线：交互默认开，松手暂为硬切
+
+`interactive` 默认 true（false 关闭并移除监听）；`cornerSize` 默认 100（=
+turn.js flipOptions）；`touch-action: none` 打在 bookEl（D-07）；pointerdown
+preventDefault + setPointerCapture（拖出窗口仍跟手；取证页的合成事件无真实
+指针会抛 NotFoundError，吞掉不影响起折）；pointercancel / lostpointercapture
+一律当弹回。拖拽中角与坐标系锁定在按下那刻，跨书缝不重新判定（turn.js 亦然）。
+
+- 依据：单一代码路径；硬切是 U4 的范围边界而非遗漏——松手过渡动画（回弹
+  bezierPath 已备好）归 U5，届时只替换 foldEnd/goTo 的调用方式，接口不动。
+- 可逆性：高。
+- 退路：动画层接入后本单元的可验面（跟手、判定、对拍）不受影响。
+
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
 旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实现的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。
@@ -103,3 +131,6 @@ turn.js 的 `hard`（硬壳 rotateY）与 `zoom.js`（放大）进 roadmap，不
   再明确保留 `filp` 拼写）。仓库与包的标识拼写不属于"可逆即可代拍"的范围。
 - 上一轮我提"封底漏画"时同时归因于 z-index 策略与缺 range 管理——z-index 那条是多余的，根因只是所有页 DOM 常驻且未被移出可见区。
 - 上一轮我提"fitScale 未生效"暗示是 Vue 封装 holder 缺宽高所致（React 版有 `style={{width,height}}`）——未实测，不下结论，留到 D-06 落地时用截图验证。
+- 上一轮总结的释放判定"double 看拖出页外或点按<200ms，single 才看中线"漏了一半：
+  turn.js 的 `_eventReleased` 是统一式 `time<200 || outArea`，**single 下 <200ms 点按同样翻页**。
+  U4 取证截图暴露（single 点按 bl 停在原页），已修 `releaseDecision` 并补测试。

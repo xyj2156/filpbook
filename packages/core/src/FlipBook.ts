@@ -1,8 +1,9 @@
 /**
  * FlipBook：框架无关的翻书主类。
  *
- * 本单元的边界 —— 只做静态布局：把页摆到该在的半本上、按 range 借还宿主、
- * 按 loc 决定显隐与叠放。折页渲染、拖拽、动画在后续单元接进来。
+ * 本单元的边界 —— 静态布局 + 指针翻页：把页摆到该在的半本上、按 range 借还宿主、
+ * 按 loc 决定显隐与叠放；拖角翻页交给 PointerController（interact）。
+ * 松手过渡动画在后续单元接进来。
  *
  * 所有权约定（DECISIONS D-04）：
  *   core 拥有：书容器、每页的裁切框 pageWrap、每页的宿主 div、staging；
@@ -19,6 +20,7 @@ import {
 } from './layout.js'
 import { diagOf, type Corner, type Point } from './corners.js'
 import { FoldOverlay } from './fold.js'
+import { PointerController } from './interact.js'
 
 export interface FlipBookOptions {
   /** 页码面数量，第 1..pageCount 页 */
@@ -35,6 +37,10 @@ export interface FlipBookOptions {
   domWindow?: number
   /** 卷曲渐变与投影 */
   gradients?: boolean
+  /** 是否启用指针翻页（拖角），默认开 */
+  interactive?: boolean
+  /** 角部热区边长（设计 px）；默认 100 = turn.js flipOptions */
+  cornerSize?: number
 }
 
 export type FlipBookEvent = 'change'
@@ -70,6 +76,10 @@ export class FlipBook {
   private readonly blankAt: number | null
   readonly gradients: boolean
   private readonly fold: FoldOverlay
+  /** 角部热区边长（设计 px） */
+  readonly cornerSize: number
+  /** 指针交互层；interactive 关闭时为 null */
+  private readonly interact: PointerController | null
 
   private readonly _total: number
   private _page: number
@@ -122,6 +132,22 @@ export class FlipBook {
       wrapperOf: (page) => this.wrapperOf(page),
       hostOf: (page) => this.hostOf(page),
     })
+
+    this.cornerSize = options.cornerSize ?? 100
+    this.interact = options.interactive === false
+      ? null
+      : new PointerController({
+          bookEl: this.bookEl,
+          size: this.size,
+          display: this.display,
+          direction: this.direction,
+          total: this._total,
+          cornerSize: this.cornerSize,
+          currentPage: () => this._page,
+          foldPage: (page, corner, at, toward) => this.foldPage(page, corner, at, toward),
+          foldEnd: () => this.foldEnd(),
+          goTo: (page) => this.goTo(page),
+        })
 
     this._page = clamp(Math.floor(options.startPage ?? 1), 1, Math.max(1, total))
     this.sync()
@@ -281,6 +307,7 @@ export class FlipBook {
   }
 
   destroy(): void {
+    this.interact?.destroy()
     this.fold.end()
     this.hosts.forEach((host) => host.remove())
     this.wraps.forEach((wrap) => wrap.remove())

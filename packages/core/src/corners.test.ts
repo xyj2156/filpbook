@@ -81,6 +81,18 @@ test('释放判定 single：看有没有拖过页中线', () => {
   assert.equal(releaseDecision({ x: 150, y: 300, corner: 'tl' }, base), false)
 })
 
+test('释放判定：快速点按 <200ms 对两种 display 都翻过去（turn.js 统一式）', () => {
+  assert.equal(
+    releaseDecision({ x: 1, y: 599, corner: 'bl' }, { display: 'single', size, pressedMs: 120 }),
+    true,
+    'single 没过中线也翻',
+  )
+  assert.equal(
+    releaseDecision({ x: 399, y: 599, corner: 'br' }, { display: 'single', size, pressedMs: 120 }),
+    true,
+  )
+})
+
 test('single 抓左侧角是后退、抓右侧角是前进', () => {
   assert.equal(singleTarget(3, 'bl', 'ltr'), 2)
   assert.equal(singleTarget(3, 'br', 'ltr'), 4)

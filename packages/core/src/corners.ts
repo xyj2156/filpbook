@@ -110,21 +110,21 @@ export function hitCorner(p: Point, ctx: HitContext): Hit | null {
 /**
  * 松手后该不该把这一页翻过去（否则弹回）。
  *
- * double：拖出页外，或按下不足 200ms 的快速点击（点角即翻页）才算翻过去。
- * single ：右半的角拖过中线、左半的角拖过中线才算。
- *
- * 注意 turn.js 在 double 下不看「过半」——旧实现按过半判定，是行为偏差。
+ * 「按下不足 200ms 的快速点按」对两种 display 都算翻过去——turn.js 的
+ * `_eventReleased` 是统一的 `time<200 || outArea`。在此之上：
+ * double：拖出页外才算（不看「过半」，旧实现按过半判定是行为偏差）；
+ * single ：拖过页中线才算。
  */
 export function releaseDecision(
   hit: Hit,
   ctx: { display: Display; size: PageSize; pressedMs: number },
 ): boolean {
-  if (ctx.display === 'single') {
-    return isLeft(hit.corner)
+  const outArea = ctx.display === 'single'
+    ? isLeft(hit.corner)
       ? hit.x > ctx.size.width / 2
       : hit.x < ctx.size.width / 2
-  }
-  return ctx.pressedMs < 200 || hit.x < 0 || hit.x > ctx.size.width
+    : hit.x < 0 || hit.x > ctx.size.width
+  return ctx.pressedMs < 200 || outArea
 }
 
 /**

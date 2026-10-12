@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // 无头 Edge 截图取证：node tools/shoot.mjs <name> [urlQuery] [--w=1280] [--h=800] [--budget=6000]
-// 产物落在 .shots/<name>.png，供 Read 工具用视觉核对翻书效果。
+//                              [--dump=1]  出 DOM 序列化（.shots/<name>.dom.html）代替截图，
+//                                          配合页面 ?dump=1 的逐元素清单做数值对拍。
+// 产物落在 .shots/，供 Read 工具用视觉核对翻书效果。
 import { spawn } from 'node:child_process'
-import { mkdirSync, existsSync, statSync, rmSync } from 'node:fs'
+import { mkdirSync, existsSync, statSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -77,16 +79,29 @@ const args = [
   '--allow-running-insecure-content',
   `--window-size=${w},${h}`,
   `--virtual-time-budget=${budget}`,
-  `--screenshot=${out}`,
+  ...(flags.dump ? ['--dump-dom'] : [`--screenshot=${out}`]),
   url,
 ]
 
+const dump = !!flags.dump
+let stdout = ''
+let err = ''
 const code = await new Promise((done) => {
-  const p = spawn(edge, args, { stdio: ['ignore', 'ignore', 'pipe'] })
-  let err = ''
+  const p = spawn(edge, args, { stdio: ['ignore', dump ? 'pipe' : 'ignore', 'pipe'] })
+  if (dump) p.stdout.on('data', (d) => { stdout += d.toString() })
   p.stderr.on('data', (d) => { err += d.toString() })
   p.on('close', done)
 })
+
+if (dump) {
+  const dumpPath = resolve(ROOT, '.shots', `${name}.dom.html`)
+  const ok = stdout.length > 0
+  if (ok) writeFileSync(dumpPath, stdout)
+  console.log(`${ok ? '✓' : '✗'} ${url}`)
+  console.log(`  -> ${dumpPath}${ok ? ` (${stdout.length} chars)` : ''}`)
+  if (!ok) console.log(err.split('\n').slice(-6).join('\n'))
+  process.exit(ok ? 0 : 1)
+}
 
 const ok = existsSync(out) && statSync(out).size > 0
 console.log(`${ok ? '✓' : '✗'} ${url}`)
