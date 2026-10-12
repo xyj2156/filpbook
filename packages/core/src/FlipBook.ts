@@ -79,6 +79,15 @@ const SPINE_CSS: readonly string[] = [
   '  right: 0;',
   '  background: linear-gradient(to left, rgba(0,0,0,0.28), rgba(0,0,0,0));',
   '}',
+  '/* 首末页独占半边（封面/封底）：硬壳铰链，窄而实；其余页是摊开弧面导槽，宽而缓 */',
+  '.filpbook-spine-hinge.filpbook-spine-left::after {',
+  '  width: 7%;',
+  '  background: linear-gradient(to right, rgba(0,0,0,0.42), rgba(0,0,0,0));',
+  '}',
+  '.filpbook-spine-hinge.filpbook-spine-right::after {',
+  '  width: 7%;',
+  '  background: linear-gradient(to left, rgba(0,0,0,0.42), rgba(0,0,0,0));',
+  '}',
 ]
 
 function ensureSpineStyle(): void {
@@ -263,13 +272,18 @@ export class FlipBook {
       })
       // 白页与真页走同一条创建路径，只差一个底色
       if (page === this.blankAt) host.style.background = '#fff'
-      // 书脊侧类（D-16）：渐变在类的 CSS 里，随宿主进出折层，页面表面自带
+      // 书脊侧类（D-16）：渐变在类的 CSS 里，随宿主进出折层，页面表面自带。
+      // 封面（第 1 页）与独占半边的末页（total 为偶数时）是合上的硬壳，
+      // 用铰链样式；奇数总页数的末页总在摊开跨页里，走导槽样式。
       if (this.gradients && this.display === 'double') {
         host.classList.add(
           halfOf(page, this.display, this.direction) === 1
             ? 'filpbook-spine-left'
             : 'filpbook-spine-right',
         )
+        if (page === 1 || (page === this._total && this._total % 2 === 0)) {
+          host.classList.add('filpbook-spine-hinge')
+        }
       }
       this.hosts.set(page, host)
       this.stageEl.appendChild(host)
