@@ -15,7 +15,7 @@
 
 import type { Direction, Display, PageSize } from './corners.js'
 import {
-  DOM_WINDOW, backOf, bookSizeOf, halfOf, locOf, naturalToward, needsBlankPage, rangeOf,
+  DOM_WINDOW, backOf, bookSizeOf, fitOf, halfOf, locOf, naturalToward, needsBlankPage, rangeOf,
   viewOf, type Toward, type View,
 } from './layout.js'
 import { diagOf, type Corner, type Point } from './corners.js'
@@ -45,6 +45,8 @@ export interface FlipBookOptions {
   hover?: boolean
   /** 翻完动画时长（ms）；默认 600 = turn.js duration */
   duration?: number
+  /** 容器适配（D-06/D-14）：contain 等比缩放并居中（默认）；none 原尺寸放左上角 */
+  fit?: 'contain' | 'none'
 }
 
 export type FlipBookEvent = 'change'
@@ -84,6 +86,16 @@ export class FlipBook {
   readonly cornerSize: number
   /** 指针交互层；interactive 关闭时为 null */
   private readonly interact: PointerController | null
+  /** 容器适配模式 */
+  readonly fit: 'contain' | 'none'
+  /** 当前缩放系数（fit=none 恒 1） */
+  private _scale = 1
+  private readonly observer: ResizeObserver | null = null
+
+  /** 当前缩放系数：消费方做叠加定位/缩放换算时用 */
+  get scale(): number {
+    return this._scale
+  }
 
   private readonly _total: number
   private _page: number
@@ -99,14 +111,21 @@ export class FlipBook {
     this.size = { width: options.width, height: options.height }
     this.display = options.display ?? 'double'
     this.direction = options.direction ?? 'ltr'
+    this.fit = options.fit ?? 'contain'
     this.domWindow = options.domWindow ?? DOM_WINDOW
+
+    // core 在挂载元素内做绝对定位与居中，需要它是定位上下文
+    if (getComputedStyle(el).position === 'static') el.style.position = 'relative'
 
     const book = bookSizeOf(this.size, this.display)
     this.bookEl = box({
-      position: 'relative',
+      position: 'absolute',
+      left: '0',
+      top: '0',
       width: `${book.width}px`,
       height: `${book.height}px`,
       overflow: 'hidden',
+      transformOrigin: '0 0',
     })
     this.stageEl = box({
       inset: '0',
@@ -158,6 +177,23 @@ export class FlipBook {
 
     this._page = clamp(Math.floor(options.startPage ?? 1), 1, Math.max(1, total))
     this.sync()
+    this.applyFit()
+
+    // 容器尺寸变化只重算一个缩放系数（D-06：resize 不触发折页重算）
+    if (typeof ResizeObserver !== 'undefined') {
+      this.observer = new ResizeObserver(() => this.applyFit())
+      this.observer.observe(el)
+    }
+  }
+
+  /** 按容器尺寸重算缩放与居中；折页数学全在设计坐标，这里只动一个 transform */
+  private applyFit(): void {
+    const book = bookSizeOf(this.size, this.display)
+    const f = fitOf(this.fit, this.el.clientWidth, this.el.clientHeight, book.width, book.height)
+    this._scale = f.scale
+    this.bookEl.style.left = `${f.left}px`
+    this.bookEl.style.top = `${f.top}px`
+    this.bookEl.style.transform = f.scale === 1 ? '' : `scale(${f.scale})`
   }
 
   /** 页码面总数（含补出来的白页） */
@@ -315,6 +351,7 @@ export class FlipBook {
   }
 
   destroy(): void {
+    this.observer?.disconnect()
     this.interact?.destroy()
     this.fold.end()
     this.hosts.forEach((host) => host.remove())

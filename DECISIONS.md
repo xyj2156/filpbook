@@ -142,6 +142,25 @@ D-13 补记（同日，用户实测反馈）：掀角态按下改为 150ms 短�
 不牺牲拖拽响应。同时松手/失捕获补间的起点从「最后指针位置」改为「当前渲染
 折点」（对齐 turn.js data.point = 最后渲染点），短滑途中松手不再跳变。
 
+## D-14 `[代拍]` fit 落地：缩放只动一个 transform，命中按比值反算
+
+`fit: 'contain' | 'none'`，默认 contain——等比缩到两向比值最小者并居中；
+none 恒 scale 1、放左上角，尺寸与溢出归使用方。容器某向为 0 时 scale=0
+（整本不可见，ResizeObserver 恢复后重算）。core 需要挂载元素做定位上下文：
+其 position 为 static 时补 `relative`。bookEl 由文档流改为绝对定位 +
+`transform: scale(s)`，`fitOf` 纯函数算 scale/left/top；ResizeObserver 驱动
+重算（无 RO 的环境跳过，不影响 SSR）。
+
+- 依据：D-06 已拍设计坐标模型，resize 只重算系数不触发折页重算；指针命中
+  的设计坐标反算（rect/设计尺寸比值）U4 已预埋在 bookPointOf，缩放下零改动——
+  `box=600x700`（scale 0.75）下合成拖拽 dump 与同折点静态折逐元素一致。
+- 可逆性：中——「挂载元素是被定位上下文」成了契约的一部分；fit=none 时
+  控制权完全交还使用方。
+- 退路：要非居中的 contain 或独立 autoCenter 选项，只动 applyFit 一处。
+- 附注：RO 回调未在无头下验证（无从触发容器 resize），但回调体与构造期
+  首算同一函数，风险仅剩事件接线。旧 vue-filpbook 的 fitScale 问题不再
+  追——本仓库按本契约重做，U7 封装时按此挂载。
+
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
 旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实现的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。

@@ -17,6 +17,8 @@
 //                      hoverdown=悬停后按下保持（跟进短滑 → 停在按下点）
 //                      hoverturn=悬停后快速点按（跟进未完即松 → 翻完动画从渲染折点续走）
 //   window=N           覆盖 domWindow（默认 6；window=999 全部页常驻，验证窗口化无可见差异）
+//   box=WxH            容器尺寸（默认=书尺寸）；配合默认 fit=contain 验证等比缩放与居中
+//   fit=none           关闭缩放，原尺寸放左上角
 import { FlipBook, cornerAnchor, cornerTarget, halfOf, isLeft, type Corner } from '@x-ac/filpbook-core'
 
 const q = new URLSearchParams(location.search)
@@ -32,9 +34,12 @@ const direction = q.get('direction') === 'rtl' ? 'rtl' : 'ltr'
 
 const PAGE = { width: 400, height: 600 }
 const bookWidth = display === 'double' ? PAGE.width * 2 : PAGE.width
+const [boxW, boxH] = (q.get('box') ?? '').split(/[x,]/).map(Number)
+const stageW = boxW > 0 ? boxW : bookWidth
+const stageH = boxH > 0 ? boxH : PAGE.height
 
 const stage = document.getElementById('stage')!
-stage.style.cssText = `width:${bookWidth}px;height:${PAGE.height}px;`
+stage.style.cssText = `width:${stageW}px;height:${stageH}px;`
 
 const book = new FlipBook(stage, {
   pageCount,
@@ -46,6 +51,7 @@ const book = new FlipBook(stage, {
   blankPage: q.get('blank') === '1',
   gradients: q.get('nogradient') !== '1',
   domWindow: q.has('window') ? Number(q.get('window')) : undefined,
+  fit: q.get('fit') === 'none' ? 'none' : 'contain',
 })
 
 // 只给真页填内容；补出来的白页应当保持空白
@@ -97,7 +103,9 @@ if (drag) {
     el.dispatchEvent(new PointerEvent(type, {
       bubbles: true, cancelable: true, isPrimary: true, pointerId: 7,
       pointerType: 'mouse', buttons: 1,
-      clientX: r.left + offsetX + p.x, clientY: r.top + p.y,
+      // 书可能被 fit 缩放：设计坐标 → 屏幕坐标要乘 scale（rect.left 已含居中偏移）
+      clientX: r.left + (offsetX + p.x) * book.scale,
+      clientY: r.top + p.y * book.scale,
     }))
   }
 
@@ -141,7 +149,7 @@ info.style.cssText = 'position:absolute;left:0;top:-26px;color:#bbb;font:13px sy
 const renderInfo = (): void => {
   info.textContent =
     `page ${book.page} · view [${book.view().join(',')}] · ` +
-    `range [${book.range().join(',')}] · total ${book.total}` +
+    `range [${book.range().join(',')}] · total ${book.total} · scale ${book.scale}` +
     (spec ? ` · fold ${spec} @ page ${q.get('foldpage') ?? book.view()[1]}` : '') +
     (dragInfo ? ` · drag ${dragInfo}` : '')
 }

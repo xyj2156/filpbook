@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  viewOf, halfOf, locOf, rangeOf, backOf, naturalToward, bookSizeOf, needsBlankPage,
+  viewOf, halfOf, locOf, rangeOf, backOf, naturalToward, bookSizeOf, needsBlankPage, fitOf,
 } from './layout.js'
 
 test('view：第 1 页独占右半，之后两页一对', () => {
@@ -93,4 +93,19 @@ test('补白页：偶数页才需要（奇数页末尾本就成对）', () => {
   assert.equal(needsBlankPage(6, 'double'), true, '6 页时最后一翻右半空着')
   assert.equal(needsBlankPage(5, 'double'), false)
   assert.equal(needsBlankPage(6, 'single'), false)
+})
+
+test('fitOf contain：按两向最小比值缩放并居中', () => {
+  // 书 800×600：受宽约束 0.75，垂直居中
+  assert.deepEqual(fitOf('contain', 600, 700, 800, 600), { scale: 0.75, left: 0, top: 125 })
+  // 受高约束 0.5，水平居中
+  assert.deepEqual(fitOf('contain', 1600, 300, 800, 600), { scale: 0.5, left: 600, top: 0 })
+  // 容器比书大：不放大，只居中
+  assert.deepEqual(fitOf('contain', 1600, 600, 800, 600), { scale: 1, left: 400, top: 0 })
+})
+
+test('fitOf：零尺寸容器 scale 为 0，none 恒原尺寸左上角', () => {
+  assert.deepEqual(fitOf('contain', 0, 700, 800, 600), { scale: 0, left: 0, top: 0 })
+  assert.deepEqual(fitOf('none', 600, 700, 800, 600), { scale: 1, left: 0, top: 0 })
+  assert.deepEqual(fitOf('none', 0, 0, 800, 600), { scale: 1, left: 0, top: 0 })
 })

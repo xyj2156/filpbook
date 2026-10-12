@@ -111,6 +111,33 @@ export function bookSizeOf(size: { width: number; height: number }, display: Dis
 }
 
 /**
+ * 容器适配（DECISIONS D-06/D-14）：把 bookW×bookH 的书装进 boxW×boxH 的容器。
+ *
+ * contain：等比缩小到两向比值的最小者，并在容器内居中；容器某一向为 0 时
+ * scale 为 0（整个不可见，ResizeObserver 会在可见后重算回来）。
+ * none：原尺寸放左上角，尺寸与溢出归使用方管。
+ *
+ * 只算一个缩放系数，折页数学全在设计坐标里——resize 不触发任何重排。
+ */
+export function fitOf(
+  fit: 'contain' | 'none',
+  boxW: number,
+  boxH: number,
+  bookW: number,
+  bookH: number,
+): { scale: number; left: number; top: number } {
+  if (fit === 'none') return { scale: 1, left: 0, top: 0 }
+  if (!Number.isFinite(boxW) || !Number.isFinite(boxH)) return { scale: 1, left: 0, top: 0 }
+  if (boxW <= 0 || boxH <= 0) return { scale: 0, left: 0, top: 0 }
+  const scale = Math.min(boxW / bookW, boxH / bookH)
+  return {
+    scale,
+    left: (boxW - bookW * scale) / 2,
+    top: (boxH - bookH * scale) / 2,
+  }
+}
+
+/**
  * 是否补一张白页凑成完整的一对。
  *
  * 注意奇偶：pages 为偶数时最后一翻是 [N, N+1]，右半没有页；
