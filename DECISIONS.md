@@ -183,20 +183,23 @@ onUnmounted（先撤内容再拆 core，D-04 顺序），React 由卸载序自�
   而非报诊断；vite 配 optimizeDeps.include 防首次请求预构建撞 headless
   虚拟时间；shoot.mjs 加看门狗（--watchdog，默认 120s）防 Edge 僵死拖死取证。
 
-## D-16 `[代拍]` 书缝阴影：超出 turn.js 基准的观感增强
+## D-16 `[代拍]` 书缝阴影：长在页上的书脊暗带（超出 turn.js 基准）
 
-double 模式在 bookEl 里加一层 `pointer-events:none` 的渐变层（z-index =
-total+1，页之上、折层浮层之下），书脊中线 x=一页宽处向两侧渐暗
-（spread=0.16 页宽、峰值 0.28，随 sync 重画）。封面/封底单页视图退化为
-书脊侧单边渐暗——空半边必须用**同位双色标做跳变**（线性渐变的插值会把
-空边整体渐染，首版截图翻车即此）。`gradients:false`（取证）与 single
-（无书缝）整层透明；destroy 移除。
+double 且开渐变时，每个页的裁切框（wrap）里栽一条**书脊侧渐暗带**
+（spread=0.16 页宽、峰值 0.28，`pointer-events:none`，排在 wrapper 之后、
+折层 bshadow 之前）。暗带随 wrap 生灭、随页层叠——这是第二版方案：
+第一版做成全书浮层（z=total+1），实测翻页时暗带浮在旋转页面上、落定才
+归位，体验割裂（用户点名打回）；改栽进 wrap 后暗带天然"长在页上"，
+掀页时露出页（loc=2）的暗带早已垫在底下，全程无跳变。
 
-- 依据：用户点名要接缝阴影更像真书；turn.js 基准里 `.shadow` 的视觉全靠
-  demo CSS（本仓库 ref.html 未配、无对拍对象），故参数自定、不宣称对齐。
-- 可逆性：高（一层 div 的 background，参数集中在 applyShadow）。
-- 退路：要真书感的更多层次（装订线高光、页缘堆叠厚度）在此层扩；要关掉
-  即 gradients:false 或将来拆独立选项。
+- 依据：用户要接缝阴影更像真书，且翻页途中必须贴合；turn.js 基准的
+  `.shadow` 视觉全靠 demo CSS（ref.html 未配），无对拍对象，参数自定。
+- 可逆性：高（wrapOf 里约十行；关掉即 gradients:false）。
+- 退路：要装订线高光、页缘堆叠厚度，在同一位置扩展；要独立开关将来拆
+  `spineShadow` 选项。
+- 踩坑记录：全书浮层版还发现 linear-gradient 色标间是**线性插值**，
+  「空半边不要渐染」需要同位双色标做跳变——改 per-page 方案后此 hack
+  自然消失（空半边没有 wrap）。
 
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 

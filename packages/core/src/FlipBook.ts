@@ -74,8 +74,6 @@ export class FlipBook {
   private readonly bookEl: HTMLDivElement
   /** 区间外宿主的暂存处：仍在文档里、可被内容正常测量，但不绘制 */
   private readonly stageEl: HTMLDivElement
-  /** 书缝阴影层：double 的书脊两侧渐暗（比 turn.js 基准多出的观感层，D-16） */
-  private readonly shadowEl: HTMLDivElement
   private readonly wraps = new Map<number, HTMLDivElement>()
   private readonly wrappers = new Map<number, HTMLDivElement>()
   private readonly hosts = new Map<number, HTMLElement>()
@@ -137,13 +135,6 @@ export class FlipBook {
       visibility: 'hidden',
       pointerEvents: 'none',
     })
-    this.shadowEl = box({
-      left: '0',
-      top: '0',
-      width: '100%',
-      height: '100%',
-      pointerEvents: 'none',
-    })
     this.el.appendChild(this.bookEl)
     this.el.appendChild(this.stageEl)
 
@@ -153,9 +144,6 @@ export class FlipBook {
     this.pageCount = Math.floor(options.pageCount)
     this._total = total
     this.gradients = options.gradients ?? true
-    // 页之上（≤total）、折层浮层（total+2）之下
-    this.shadowEl.style.zIndex = String(total + 1)
-    this.bookEl.appendChild(this.shadowEl)
 
     this.fold = new FoldOverlay({
       bookEl: this.bookEl,
@@ -278,6 +266,25 @@ export class FlipBook {
     wrap.appendChild(wrapper)
     this.wrappers.set(page, wrapper)
 
+    // 书脊暗带（D-16）：长在页的裁切框里、钉在书缝一侧，页动它不动——
+    // 掀页时暗带留在原地正好成为露出页的缝影，不会浮在旋转页上。
+    // bands 随 wrap 生灭，无需单独清理；gradients 关与 single 无书缝，不栽。
+    if (this.gradients && this.display === 'double') {
+      const spineLeft = halfOf(page, this.display, this.direction) === 1
+      const spread = Math.round(this.size.width * 0.16)
+      const band = box({
+        left: '0',
+        top: '0',
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+      })
+      band.style.background = spineLeft
+        ? `linear-gradient(to right, rgba(0,0,0,0.28) 0px, rgba(0,0,0,0) ${spread}px)`
+        : `linear-gradient(to right, rgba(0,0,0,0) calc(100% - ${spread}px), rgba(0,0,0,0.28) 100%)`
+      wrap.appendChild(band) // 排在 wrapper 之后：内容之上、后续 bshadow 之下
+    }
+
     this.hostOf(page)
     this.bookEl.appendChild(wrap)
     this.wraps.set(page, wrap)
@@ -348,39 +355,6 @@ export class FlipBook {
       this.wraps.delete(page)
       this.wrappers.delete(page)
     }
-
-    this.applyShadow()
-  }
-
-  /**
-   * 书缝阴影（D-16）：书脊两侧的渐暗带，位置恒在书的中线 x = 一页宽处。
-   * turn.js 基准里 .shadow 的视觉全靠 demo CSS（本仓库 ref.html 未配），
-   * 这层是我们自己的观感增强：参数自定，随 sync 在视图切换时重画。
-   * gradients 关（取证）与 single（无书缝）时整层透明。
-   */
-  private applyShadow(): void {
-    if (!this.gradients || this.display === 'single' || this._total < 1) {
-      this.shadowEl.style.background = ''
-      return
-    }
-    const w = this.size.width
-    const spread = Math.round(w * 0.16)
-    const a = 0.28
-    const dark = (v: number): string => `rgba(0,0,0,${v})`
-    const view = this.view()
-    const leftVisible = view[0] >= 1
-    const rightVisible = view[1] >= 1 && view[1] <= this._total
-
-    // 暗带只许落进可见页：半边空时用同位双色标做跳变（线性插值会把空边渐染）
-    let bg = ''
-    if (leftVisible && rightVisible) {
-      bg = `linear-gradient(to right, ${dark(0)} ${w - spread}px, ${dark(a)} ${w}px, ${dark(0)} ${w + spread}px)`
-    } else if (rightVisible) {
-      bg = `linear-gradient(to right, ${dark(0)} ${w}px, ${dark(a)} ${w}px, ${dark(0)} ${w + spread}px)`
-    } else if (leftVisible) {
-      bg = `linear-gradient(to right, ${dark(0)} ${w - spread}px, ${dark(a)} ${w}px, ${dark(0)} ${w}px)`
-    }
-    this.shadowEl.style.background = bg
   }
 
   on(event: FlipBookEvent, listener: Listener): this {
@@ -399,7 +373,6 @@ export class FlipBook {
     this.observer?.disconnect()
     this.interact?.destroy()
     this.fold.end()
-    this.shadowEl.remove()
     this.hosts.forEach((host) => host.remove())
     this.wraps.forEach((wrap) => wrap.remove())
     this.hosts.clear()
