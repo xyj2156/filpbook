@@ -63,18 +63,13 @@ book.on('change', (page, view) => console.log(page, view))
 </script>
 ```
 
-**AMD**——RequireJS；注意 `nodeIdCompat: true`（tsc 产物的相对依赖带 `.js` 后缀，不剥掉会拼出 `corners.js.js` 404）：
+**UMD**——RequireJS / CJS / 经典标签三合一（单文件，无相对依赖）：
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.7/require.js"></script>
 <script>
   require.config({
-    nodeIdCompat: true,
-    packages: [{
-      name: 'filpbook-core',
-      location: 'https://cdn.jsdelivr.net/npm/@x-ac/filpbook-core@0.1.0/dist/amd',
-      main: 'index'
-    }]
+    paths: { 'filpbook-core': 'https://cdn.jsdelivr.net/npm/@x-ac/filpbook-core@0.1.0/dist/index.umd' }
   })
   require(['filpbook-core'], function (fb) {
     new fb.FlipBook(document.getElementById('stage'), { pageCount: 6, width: 400, height: 600 })
@@ -91,7 +86,7 @@ book.on('change', (page, view) => console.log(page, view))
 </script>
 ```
 
-三种格式的取舍：现代浏览器/打包器走 ESM；RequireJS 走 AMD；经典脚本标签走 IIFE（UMD 的 AMD/CJS 分支已被前两者覆盖，故不提供）。IIFE 由 `vite build` 产出，仓库内 `tools/iife.html`、`tools/amd.html` 分别是两种产物的无头取证页。
+三种格式的取舍：现代浏览器/打包器走 ESM；加载器与经典标签二选一——UMD（含 AMD 分支，全包含）或 IIFE（纯全局，最轻）。UMD 与 IIFE 均由 `vite build` 产出，仓库内 `tools/umd.html`、`tools/iife.html` 分别是无头取证页。
 
 ## License
 

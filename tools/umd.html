@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>flipbook · umd dist harness</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #26262a; }
+      body { display: grid; place-items: center; font: 14px/1.5 system-ui, sans-serif; }
+      #stage { position: relative; width: 800px; height: 600px; }
+      .probe { position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 8px; color: #eee; }
+      .probe b { font-size: 40px; font-weight: 600; }
+      #info { position: fixed; left: 12px; top: 8px; color: #bbb; font: 13px system-ui; }
+    </style>
+  </head>
+  <body>
+    <div id="info">UMD 加载中…</div>
+    <div id="stage"></div>
+    <!-- 取证页：RequireJS 消费 UMD 产物（单文件，AMD 分支只依赖 exports，无相对依赖） -->
+    <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.7/require.js"></script>
+    <script>
+      require.config({
+        paths: { 'filpbook-core': '/packages/core/dist/index.umd' }
+      })
+      require(['filpbook-core'], function (fb) {
+        var book = new fb.FlipBook(document.getElementById('stage'), {
+          pageCount: 6, width: 400, height: 600
+        })
+        for (var p = 1; p <= book.total; p++) {
+          var host = book.hostOf(p)
+          host.style.background = 'hsl(' + ((p * 26) % 360) + ' 40% ' + (p % 2 ? 28 : 40) + '%)'
+          host.innerHTML = '<div class="probe"><b>第 ' + p + ' 页</b><span>umd dist</span></div>'
+        }
+        document.getElementById('info').textContent =
+          'UMD OK · FlipBook ' + (typeof fb.FlipBook) + ' · total ' + book.total
+        window.__umdReady = true
+      }, function (err) {
+        document.getElementById('info').textContent = 'UMD FAIL: ' + (err && err.message || err)
+      })
+    </script>
+  </body>
+</html>

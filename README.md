@@ -6,7 +6,7 @@
 
 | 包 | 说明 |
 | --- | --- |
-| [`@x-ac/filpbook-core`](packages/core) | 框架无关引擎：布局、折页几何、指针交互、松手动画；零依赖，CDN 直引（ESM / AMD / IIFE 全局） |
+| [`@x-ac/filpbook-core`](packages/core) | 框架无关引擎：布局、折页几何、指针交互、松手动画；零依赖，CDN 直引（ESM / UMD / IIFE 全局） |
 | [`@x-ac/filpbook-vue`](packages/vue) | Vue 3 封装，Teleport 渲染进宿主 |
 | [`@x-ac/filpbook-react`](packages/react) | React 封装（≥18），createPortal 渲染进宿主 |
 
@@ -111,7 +111,7 @@ pnpm dev         # http://localhost:5199
 
 - 引擎取证页：`/tools/smoke.html`，支持 `?page=3&fold=br:0.5&drag=hold:br:200,500` 等确定性 query
 - 双框架演示：`/playground/index.html`（Vue）与 `/playground/react.html`
-- 视觉取证链路：`node tools/shoot.mjs <name> "<query>" [--dump=1]`，无头 Edge 截图 / DOM 序列化落 `.shots/`；`/tools/amd.html`、`/tools/iife.html` 分别是 AMD 与 IIFE 产物的加载实测页
+- 视觉取证链路：`node tools/shoot.mjs <name> "<query>" [--dump=1]`，无头 Edge 截图 / DOM 序列化落 `.shots/`；`/tools/umd.html`、`/tools/iife.html` 分别是 UMD 与 IIFE 产物的加载实测页
 - 发布：`pnpm -r publish`（内部依赖用 `workspace:*`，必须走 pnpm 做版本替换；prepublishOnly 会先跑测试/构建）
 
 架构决策（每条含依据 / 可逆性 / 退路）见 [DECISIONS.md](DECISIONS.md)。
