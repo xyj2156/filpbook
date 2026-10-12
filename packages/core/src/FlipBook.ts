@@ -82,11 +82,11 @@ const SPINE_CSS: readonly string[] = [
   '/* 首末页独占半边（封面/封底）：无弧度的硬壳铰链——边缘实黑、迅速衰减到透明；其余页是摊开弧面导槽，宽而缓 */',
   '.filpbook-spine-hinge.filpbook-spine-left::after {',
   '  width: 6%;',
-  '  background: linear-gradient(to right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.18) 30%, rgba(0,0,0,0) 75%);',
+  '  background: linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 75%);',
   '}',
   '.filpbook-spine-hinge.filpbook-spine-right::after {',
   '  width: 6%;',
-  '  background: linear-gradient(to left, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.18) 30%, rgba(0,0,0,0) 75%);',
+  '  background: linear-gradient(to left, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 75%);',
   '}',
 ]
 
