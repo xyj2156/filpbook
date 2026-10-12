@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>flipbook · iife dist harness</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #26262a; }
+      body { display: grid; place-items: center; font: 14px/1.5 system-ui, sans-serif; }
+      #stage { position: relative; width: 800px; height: 600px; }
+      .probe { position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 8px; color: #eee; }
+      .probe b { font-size: 40px; font-weight: 600; }
+      #info { position: fixed; left: 12px; top: 8px; color: #bbb; font: 13px system-ui; }
+    </style>
+  </head>
+  <body>
+    <div id="info">IIFE 加载中…</div>
+    <div id="stage"></div>
+    <!-- 取证页：经典 <script> 标签消费 IIFE 产物，全局 filpbook -->
+    <script src="/packages/core/dist/index.iife.js"></script>
+    <script>
+      try {
+        var book = new filpbook.FlipBook(document.getElementById('stage'), {
+          pageCount: 6, width: 400, height: 600
+        })
+        for (var p = 1; p <= book.total; p++) {
+          var host = book.hostOf(p)
+          host.style.background = 'hsl(' + ((p * 26) % 360) + ' 40% ' + (p % 2 ? 28 : 40) + '%)'
+          host.innerHTML = '<div class="probe"><b>第 ' + p + ' 页</b><span>iife dist</span></div>'
+        }
+        document.getElementById('info').textContent =
+          'IIFE OK · FlipBook ' + (typeof filpbook.FlipBook) + ' · total ' + book.total
+        window.__iifeReady = true
+      } catch (e) {
+        document.getElementById('info').textContent = 'IIFE FAIL: ' + e.message
+      }
+    </script>
+  </body>
+</html>

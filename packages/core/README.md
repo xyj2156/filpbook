@@ -82,7 +82,16 @@ book.on('change', (page, view) => console.log(page, view))
 </script>
 ```
 
-AMD 产物由 `pnpm build` 一并产出（`dist/amd/`），仓库内 `tools/amd.html` 是它的无头取证页。
+**IIFE**——经典 `<script>` 标签，挂全局 `filpbook`（40 kB / gzip 11 kB）：
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@x-ac/filpbook-core@0.1.0/dist/index.iife.js"></script>
+<script>
+  new filpbook.FlipBook(document.getElementById('stage'), { pageCount: 6, width: 400, height: 600 })
+</script>
+```
+
+三种格式的取舍：现代浏览器/打包器走 ESM；RequireJS 走 AMD；经典脚本标签走 IIFE（UMD 的 AMD/CJS 分支已被前两者覆盖，故不提供）。IIFE 由 `vite build` 产出，仓库内 `tools/iife.html`、`tools/amd.html` 分别是两种产物的无头取证页。
 
 ## License
 

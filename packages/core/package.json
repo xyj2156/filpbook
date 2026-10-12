@@ -16,10 +16,13 @@
   },
   "files": ["dist", "README.md"],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.amd.json",
+    "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.amd.json && vite build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsc -p tsconfig.test.json && node --test \".tmp-test/*.test.js\"",
     "prepublishOnly": "pnpm test && pnpm typecheck && pnpm build"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
   },
   "repository": {
     "type": "git",

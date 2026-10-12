@@ -220,7 +220,7 @@ double 且开渐变时，core 给每个页宿主按书脊侧加类（`filpbook-s
 - 可逆性：高。
 - 退路：LICENSE 版权行现写 `xyj2156`，正式发布前如有变更只动四个文件头。
 
-## D-18 `[代拍]` CDN 直引：ESM 主产物即浏览器可用，AMD 单独编译
+## D-18 `[代拍]` CDN 直引：ESM 主产物即浏览器可用，AMD/IIFE 各司其职
 
 core 零运行时依赖、全相对导入，`dist/index.js` 本身就是可在浏览器直连的
 ESM——CDN 用法只是文档问题。AMD 走 `tsconfig.amd.json`（module: AMD，须
@@ -228,13 +228,20 @@ ESM——CDN 用法只是文档问题。AMD 走 `tsconfig.amd.json`（module: AM
 AMD 互斥）产出 `dist/amd/` 多文件。**RequireJS 消费必须 `nodeIdCompat:
 true`**：tsc 的相对依赖带 `.js` 后缀，不剥掉会拼 `corners.js.js` 404——
 `tools/amd.html` 用 CDN requirejs 加载本地产物实测通过。exports 暴露
-`./amd` 子路径；经典 `<script>` 全局版（IIFE/UMD）未做，需要时再加
-（vite lib formats 不含 amd，届时需换打包器或 tsc + 拼接）。
+`./amd` 子路径。
 
-- 依据：用户点名 CDN 直引 + AMD/ESM 两种方式；多文件 AMD 是 tsc 标准产物，
-  packages 配置是其规范消费方式。
+**IIFE（不做 UMD）**：`vite build`（lib formats: ['iife']，全局名
+`filpbook`——core 导出不止一个类，挂命名空间；`emptyOutDir: false` 保住
+tsc 产物、`minify: false` 交给 CDN 按需）产出 `dist/index.iife.js`，
+`tools/iife.html` 实测通过。不做 UMD 的理由：UMD = AMD + CJS + 全局三合一，
+本仓库已单独提供纯 AMD，经典 `<script>` 场景由 IIFE 覆盖，UMD 相对 IIFE
+只多老式 CJS `require()`（浏览器场景不存在，Node 侧走 ESM）——三个产物
+零重叠覆盖全场景，UMD 是冗余。core 为此补了 vite devDep。
+
+- 依据：用户点名 CDN 直引 + AMD/ESM；UMD/IIFE 取舍经用户问询后裁定。
 - 可逆性：高（加产物不动现有）。
-- 退路：要单文件 AMD 需引入打包步骤；要 IIFE/UMD 同理。
+- 退路：要单文件 AMD 需引入打包步骤；UMD 随时可加（vite lib formats 有
+  'cjs' 可作底）。
 
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
