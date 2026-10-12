@@ -137,6 +137,11 @@ duration 选项默认 600；弹回 = retractHandles 贝塞尔，800；掀角 = �
 补间走不完。取证页 smoke.ts 把 rAF 换成 16ms setTimeout 驱动——只换调度器，
 补间/缓动/回调逻辑不变；真实浏览器不受影响。
 
+D-13 补记（同日，用户实测反馈）：掀角态按下改为 150ms 短滑跟进（CATCHUP_MS）——
+原先折点从掀角位瞬跳到按下点很突兀；跟进途中指针一移动即取消补间转跟手，
+不牺牲拖拽响应。同时松手/失捕获补间的起点从「最后指针位置」改为「当前渲染
+折点」（对齐 turn.js data.point = 最后渲染点），短滑途中松手不再跳变。
+
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
 旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实现的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。

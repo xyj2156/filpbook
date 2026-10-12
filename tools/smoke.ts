@@ -7,12 +7,15 @@
 //   fold=br:200,500    直接给页内折点坐标
 //   foldpage=4         指定翻哪一页（默认当前 view 的右页）
 //   drag=hold:br:200,500 | turn:br | retreat:br:200,500 | hover:br | unhover:br
+//                      | hoverdown:br | hoverturn:br
 //                      合成指针序列，走真的 PointerController 监听器（取证链路 D-08）：
 //                      hold=按下拖到目标点保持（dump 应与同折点的 ?fold= 逐元素一致）
 //                      turn=按下即抬（<200ms 点按 → 翻完动画 → 背面页）
 //                      retreat=按住 300ms 拖到目标点再松（不翻，弹回动画后原样）
 //                      hover=悬停到角上（掀角动画 → 停在 cornerSize/2 处）
 //                      unhover=悬停后移到页中（掀角 → 弹回 → 原样）
+//                      hoverdown=悬停后按下保持（跟进短滑 → 停在按下点）
+//                      hoverturn=悬停后快速点按（跟进未完即松 → 翻完动画从渲染折点续走）
 //   window=N           覆盖 domWindow（默认 6；window=999 全部页常驻，验证窗口化无可见差异）
 import { FlipBook, cornerAnchor, cornerTarget, halfOf, isLeft, type Corner } from '@x-ac/filpbook-core'
 
@@ -110,6 +113,15 @@ if (drag) {
     fire('pointermove', anchor)
     setTimeout(() => {
       fire('pointermove', { x: PAGE.width / 2, y: PAGE.height / 2 }) // 移出热区 → 弹回原样
+    }, 600)
+  } else if (mode === 'hoverdown') {
+    fire('pointermove', anchor)
+    setTimeout(() => { fire('pointerdown', anchor) }, 600) // 掀角→按下：短滑后停在按下点
+  } else if (mode === 'hoverturn') {
+    fire('pointermove', anchor)
+    setTimeout(() => {
+      fire('pointerdown', anchor)
+      fire('pointerup', anchor) // 掀角态快速点按：翻完动画从渲染折点续走 → 背面页
     }, 600)
   } else if (mode === 'retreat') {
     fire('pointerdown', anchor)

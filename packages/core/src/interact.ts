@@ -18,9 +18,11 @@ import { retractHandles } from './geometry.js'
 import type { FoldState } from './fold.js'
 import { FoldTween } from './anim.js'
 
-/** turn.js 的固定时长：掀角 500、弹回 800；翻完走 opts.duration（默认 600） */
+/** turn.js 的固定时长：掀角 500、弹回 800；翻完走 opts.duration（默认 600）。
+ * 掀角态按下的跟进短滑 turn.js 没有（它是瞬时落点），取 150 只求不突兀 */
 const PEEL_MS = 500
 const RETRACT_MS = 800
+const CATCHUP_MS = 150
 
 /** 一翻的完整意图 */
 export interface FoldIntent {
@@ -166,7 +168,7 @@ export class PointerController {
       if (d && e.pointerId === d.pointerId) {
         this.drag = null
         this.hoverIntent = null
-        this.retractTo(d.intent, d.last)
+        this.retractTo(d.intent, this.foldPointOf(d.intent, d.last))
       }
     }
     const onLeave = (): void => {
@@ -230,6 +232,21 @@ export class PointerController {
       last: point(at.x - intent.offsetX, at.y),
     }
     this.drag = drag
+
+    // 掀角态按下：从当前折点短滑到按下点（turn.js 瞬时落点，实测突兀）。
+    // 指针一移动 onMove 就取消补间转跟手，故不牺牲拖拽响应。
+    const state = env.foldState()
+    if (state && state.corner === intent.corner) {
+      this.tweenTurns = false
+      this.tween.run({
+        from: state.point,
+        to: drag.last,
+        duration: CATCHUP_MS,
+        frame: (p) => env.foldPage(intent.page, intent.corner, p, intent.toward),
+      })
+      return
+    }
+
     if (!env.foldPage(intent.page, intent.corner, drag.last, intent.toward)) {
       this.drag = null
     }
@@ -242,6 +259,7 @@ export class PointerController {
       return
     }
     if (e.pointerId !== d.pointerId) return
+    this.tween.cancel() // 指针动了：跟进短滑（掀角→按下）立即让位给跟手
     const rect = this.env.bookEl.getBoundingClientRect()
     if (!(rect.width > 0) || !(rect.height > 0)) return
     const book = bookSizeOf(this.env.size, this.env.display)
@@ -268,12 +286,16 @@ export class PointerController {
       },
     )
 
+    // 补间起点从「当前渲染折点」出发（turn.js data.point 即最后渲染点），
+    // 跟进短滑途中松手才不会跳变
+    const from = this.foldPointOf(d.intent, d.last)
+
     if (turn) {
       // 翻完：直线推向完全翻过去的落点（turn.js turnPage 传 p1,p1,p4,p4），
       // 落地后 goTo 换页——它内部会收折层、重排、发 change。
       this.tweenTurns = true
       this.tween.run({
-        from: d.last,
+        from,
         to: cornerTarget(d.intent.corner, this.env.size),
         duration: this.env.duration,
         frame: (p) => this.foldOf(d.intent, p),
@@ -283,7 +305,7 @@ export class PointerController {
         },
       })
     } else {
-      this.retractTo(d.intent, d.last)
+      this.retractTo(d.intent, from)
     }
   }
 
@@ -354,6 +376,12 @@ export class PointerController {
 
   private foldOf(intent: PressIntent, at: Point): void {
     this.env.foldPage(intent.page, intent.corner, at, intent.toward)
+  }
+
+  /** 当前渲染中的折点（同角时），否则回退 fallback——补间起点一律从可见状态出发 */
+  private foldPointOf(intent: PressIntent, fallback: Point): Point {
+    const s = this.env.foldState()
+    return s && s.corner === intent.corner ? s.point : fallback
   }
 
   /** 弹回动画：沿 retractHandles 的轨迹收到被折角锚点，完成后收层 */
