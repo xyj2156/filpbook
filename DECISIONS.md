@@ -183,6 +183,21 @@ onUnmounted（先撤内容再拆 core，D-04 顺序），React 由卸载序自�
   而非报诊断；vite 配 optimizeDeps.include 防首次请求预构建撞 headless
   虚拟时间；shoot.mjs 加看门狗（--watchdog，默认 120s）防 Edge 僵死拖死取证。
 
+## D-16 `[代拍]` 书缝阴影：超出 turn.js 基准的观感增强
+
+double 模式在 bookEl 里加一层 `pointer-events:none` 的渐变层（z-index =
+total+1，页之上、折层浮层之下），书脊中线 x=一页宽处向两侧渐暗
+（spread=0.16 页宽、峰值 0.28，随 sync 重画）。封面/封底单页视图退化为
+书脊侧单边渐暗——空半边必须用**同位双色标做跳变**（线性渐变的插值会把
+空边整体渐染，首版截图翻车即此）。`gradients:false`（取证）与 single
+（无书缝）整层透明；destroy 移除。
+
+- 依据：用户点名要接缝阴影更像真书；turn.js 基准里 `.shadow` 的视觉全靠
+  demo CSS（本仓库 ref.html 未配、无对拍对象），故参数自定、不宣称对齐。
+- 可逆性：高（一层 div 的 background，参数集中在 applyShadow）。
+- 退路：要真书感的更多层次（装订线高光、页缘堆叠厚度）在此层扩；要关掉
+  即 gradients:false 或将来拆独立选项。
+
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
 旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实现的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。
