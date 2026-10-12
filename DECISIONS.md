@@ -207,6 +207,19 @@ double 且开渐变时，core 给每个页宿主按书脊侧加类（`filpbook-s
   后面的选择器被整体判非法，**规则整条静默丢弃**（截图无变化、DOM 里
   类和样式都在，最后是打印样式表全文才现形）。
 
+## D-17 `[代拍]` 发布配置：main/types 指 dist，发布走 pnpm
+
+三包统一：`main`/`types` 指向 `dist`（旧解析器兜底；现代解析器仍以 `exports`
+为权威，开发期由根 tsconfig paths 直连源码）；`repository` 带 `directory`
+（monorepo 内定位包）；`publishConfig.access: "public"`（scoped 免 `--access`）；
+`prepublishOnly` 三连（core：test+typecheck+build；封装：typecheck+build）；
+`LICENSE` 落各包目录——npm 打包只认包目录内的文件，根 LICENSE 不进 tarball。
+
+- 依据：无争议的惯例组合；发布流程唯一要点是内部依赖写作 `workspace:*`，
+  **必须 `pnpm -r publish`**（做版本替换），npm publish 会原样发出导致装不上。
+- 可逆性：高。
+- 退路：LICENSE 版权行现写 `xyj2156`，正式发布前如有变更只动四个文件头。
+
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
 旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实现的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。

@@ -4,8 +4,8 @@
   "type": "module",
   "description": "React wrapper for @x-ac/filpbook-core",
   "sideEffects": false,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,7 +16,16 @@
   "files": ["dist", "README.md"],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "pnpm typecheck && pnpm build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xyj2156/filpbook.git",
+    "directory": "packages/react"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@x-ac/filpbook-core": "workspace:*"
@@ -29,5 +38,6 @@
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
+  "keywords": ["react", "flipbook", "page-flip", "page-curl", "turn", "ebook"],
   "license": "MIT"
 }
