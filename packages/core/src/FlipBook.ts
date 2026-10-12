@@ -55,6 +55,40 @@ type Listener = (page: number, view: View) => void
 
 const clamp = (v: number, lo: number, hi: number): number => Math.min(Math.max(v, lo), hi)
 
+/**
+ * 书脊渐变（D-16，用户设计）：类挂在每个页宿主上，渐变写在类的 CSS 里。
+ * 关键性质是宿主只有一个——静止时它在 wrapper 里、翻页时被折层的背面页
+ * 也是同一个宿主，渐变随页面表面走，旋转途中天然贴合，无层叠切换瞬间的
+ * 忽深忽浅。::after 绘制不产生额外 DOM。
+ */
+const SPINE_STYLE_ID = 'filpbook-spine-style'
+const SPINE_CSS: readonly string[] = [
+  '.filpbook-spine-left::after, .filpbook-spine-right::after {',
+  "  content: '';",
+  '  position: absolute;',
+  '  top: 0;',
+  '  bottom: 0;',
+  '  width: 16%;',
+  '  pointer-events: none;',
+  '}',
+  '.filpbook-spine-left::after {',
+  '  left: 0;',
+  '  background: linear-gradient(to right, rgba(0,0,0,0.28), rgba(0,0,0,0));',
+  '}',
+  '.filpbook-spine-right::after {',
+  '  right: 0;',
+  '  background: linear-gradient(to left, rgba(0,0,0,0.28), rgba(0,0,0,0));',
+  '}',
+]
+
+function ensureSpineStyle(): void {
+  if (typeof document === 'undefined' || document.getElementById(SPINE_STYLE_ID)) return
+  const style = document.createElement('style')
+  style.id = SPINE_STYLE_ID
+  style.textContent = SPINE_CSS.join('\n')
+  document.head.appendChild(style)
+}
+
 function box(css: Partial<CSSStyleDeclaration>): HTMLDivElement {
   const el = document.createElement('div')
   el.style.position = 'absolute'
@@ -144,6 +178,7 @@ export class FlipBook {
     this.pageCount = Math.floor(options.pageCount)
     this._total = total
     this.gradients = options.gradients ?? true
+    if (this.gradients && this.display === 'double') ensureSpineStyle()
 
     this.fold = new FoldOverlay({
       bookEl: this.bookEl,
@@ -228,6 +263,14 @@ export class FlipBook {
       })
       // 白页与真页走同一条创建路径，只差一个底色
       if (page === this.blankAt) host.style.background = '#fff'
+      // 书脊侧类（D-16）：渐变在类的 CSS 里，随宿主进出折层，页面表面自带
+      if (this.gradients && this.display === 'double') {
+        host.classList.add(
+          halfOf(page, this.display, this.direction) === 1
+            ? 'filpbook-spine-left'
+            : 'filpbook-spine-right',
+        )
+      }
       this.hosts.set(page, host)
       this.stageEl.appendChild(host)
     }
@@ -265,25 +308,6 @@ export class FlipBook {
     wrapper.dataset.page = String(page)
     wrap.appendChild(wrapper)
     this.wrappers.set(page, wrapper)
-
-    // 书脊暗带（D-16）：长在页的裁切框里、钉在书缝一侧，页动它不动——
-    // 掀页时暗带留在原地正好成为露出页的缝影，不会浮在旋转页上。
-    // bands 随 wrap 生灭，无需单独清理；gradients 关与 single 无书缝，不栽。
-    if (this.gradients && this.display === 'double') {
-      const spineLeft = halfOf(page, this.display, this.direction) === 1
-      const spread = Math.round(this.size.width * 0.16)
-      const band = box({
-        left: '0',
-        top: '0',
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-      })
-      band.style.background = spineLeft
-        ? `linear-gradient(to right, rgba(0,0,0,0.28) 0px, rgba(0,0,0,0) ${spread}px)`
-        : `linear-gradient(to right, rgba(0,0,0,0) calc(100% - ${spread}px), rgba(0,0,0,0.28) 100%)`
-      wrap.appendChild(band) // 排在 wrapper 之后：内容之上、后续 bshadow 之下
-    }
 
     this.hostOf(page)
     this.bookEl.appendChild(wrap)
