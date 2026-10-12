@@ -68,7 +68,7 @@ const SPINE_CSS: readonly string[] = [
   '  position: absolute;',
   '  top: 0;',
   '  bottom: 0;',
-  '  width: 16%;',
+  '  width: 10%;',
   '  pointer-events: none;',
   '}',
   '.filpbook-spine-left::after {',
