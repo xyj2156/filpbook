@@ -11,11 +11,12 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./amd": "./dist/amd/index.js",
     "./package.json": "./package.json"
   },
   "files": ["dist", "README.md"],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.amd.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsc -p tsconfig.test.json && node --test \".tmp-test/*.test.js\"",
     "prepublishOnly": "pnpm test && pnpm typecheck && pnpm build"

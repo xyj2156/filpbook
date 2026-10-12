@@ -49,6 +49,41 @@ book.on('change', (page, view) => console.log(page, view))
 
 选项表、书脊类名（`filpbook-spine-left/right/hinge`）的定制方式见[根 README](../../README.md)。
 
+## 浏览器直接使用（CDN）
+
+引擎零运行时依赖、全相对导入，发布后可经 CDN 直引（示例以 jsDelivr 为例，unpkg 同理）。
+
+**ESM**——`<script type="module">` 直接 import：
+
+```html
+<script type="module">
+  import { FlipBook } from 'https://cdn.jsdelivr.net/npm/@x-ac/filpbook-core@0.1.0/dist/index.js'
+
+  new FlipBook(document.getElementById('stage'), { pageCount: 6, width: 400, height: 600 })
+</script>
+```
+
+**AMD**——RequireJS；注意 `nodeIdCompat: true`（tsc 产物的相对依赖带 `.js` 后缀，不剥掉会拼出 `corners.js.js` 404）：
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.7/require.js"></script>
+<script>
+  require.config({
+    nodeIdCompat: true,
+    packages: [{
+      name: 'filpbook-core',
+      location: 'https://cdn.jsdelivr.net/npm/@x-ac/filpbook-core@0.1.0/dist/amd',
+      main: 'index'
+    }]
+  })
+  require(['filpbook-core'], function (fb) {
+    new fb.FlipBook(document.getElementById('stage'), { pageCount: 6, width: 400, height: 600 })
+  })
+</script>
+```
+
+AMD 产物由 `pnpm build` 一并产出（`dist/amd/`），仓库内 `tools/amd.html` 是它的无头取证页。
+
 ## License
 
 [MIT](../../LICENSE)
