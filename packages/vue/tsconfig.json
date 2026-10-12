@@ -1,9 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "src",
     "noEmit": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "paths": { "@x-ac/filpbook-core": ["../core/src/index.ts"] }
   },
   "include": ["src", "vite.config.ts"]
 }

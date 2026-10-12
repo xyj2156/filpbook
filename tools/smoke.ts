@@ -20,6 +20,7 @@
 //   box=WxH            容器尺寸（默认=书尺寸）；配合默认 fit=contain 验证等比缩放与居中
 //   fit=none           关闭缩放，原尺寸放左上角
 import { FlipBook, cornerAnchor, cornerTarget, halfOf, isLeft, type Corner } from '@x-ac/filpbook-core'
+import { dumpdom } from './dumpdom'
 
 const q = new URLSearchParams(location.search)
 
@@ -159,27 +160,7 @@ stage.appendChild(info)
 
 // ?dump=1 → 把整棵 DOM 的矩形与 inline style 打出来，配合 msedge --dump-dom
 // 与 tools/ref.html（真 turn.js）逐元素比对
-if (q.get('dump')) {
-  const pre = document.createElement('pre')
-  pre.id = 'dump'
-  pre.style.cssText = 'position:fixed;left:-9999px;top:0;font:11px monospace;white-space:pre'
-  document.body.appendChild(pre)
-  const lines: string[] = []
-  const walk = (node: Element, depth: number): void => {
-    const r = node.getBoundingClientRect()
-    const cls = node.className && typeof node.className === 'string' && node.className.trim()
-      ? `.${node.className.trim().split(/\s+/).join('.')}` : ''
-    const ds = Object.entries((node as HTMLElement).dataset).map(([k, v]) => `[${k}=${v}]`).join('')
-    lines.push(
-      `${'  '.repeat(depth)}<${node.tagName.toLowerCase()}${cls}${ds}> ` +
-      `${Math.round(r.left)},${Math.round(r.top)} ${Math.round(r.width)}x${Math.round(r.height)} || ` +
-      `${node.getAttribute('style') || ''}`,
-    )
-    for (const child of Array.from(node.children)) walk(child, depth + 1)
-  }
-  walk(stage, 0)
-  pre.textContent = lines.join('\n')
-}
+if (q.get('dump')) dumpdom(stage)
 
 ;(window as unknown as { __book: FlipBook }).__book = book
 ;(window as unknown as { __ready: boolean }).__ready = true

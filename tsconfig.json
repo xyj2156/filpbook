@@ -6,7 +6,7 @@
     "paths": {
       "@x-ac/filpbook-core": ["./packages/core/src/index.ts"],
       "@x-ac/filpbook-vue": ["./packages/vue/src/index.ts"],
-      "@x-ac/filpbook-react": ["./packages/react/src/index.ts"]
+      "@x-ac/filpbook-react": ["./packages/react/src/index.tsx"]
     }
   },
   "include": ["playground", "tools", "packages/core/src", "packages/react/src", "packages/vue/src"]

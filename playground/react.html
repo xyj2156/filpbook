@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>flipbook · react playground</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #26262a; }
+      body { display: grid; place-items: center; font: 14px/1.5 system-ui, sans-serif; }
+      .page { position: absolute; inset: 0; }
+      .probe {
+        position: absolute; inset: 0; display: flex; flex-direction: column;
+        align-items: center; justify-content: center; gap: 8px; color: #eee;
+      }
+      .probe b { font-size: 40px; font-weight: 600; }
+      .probe span { font-size: 13px; opacity: .65; }
+      #info { position: fixed; left: 12px; top: 8px; color: #bbb; font: 13px system-ui; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./react.tsx"></script>
+  </body>
+</html>

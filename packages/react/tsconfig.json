@@ -1,8 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist"
+    "noEmit": true,
+    "paths": { "@x-ac/filpbook-core": ["../core/src/index.ts"] }
   },
   "include": ["src"]
 }

@@ -161,6 +161,28 @@ none 恒 scale 1、放左上角，尺寸与溢出归使用方。容器某向为 
   首算同一函数，风险仅剩事件接线。旧 vue-filpbook 的 fitScale 问题不再
   追——本仓库按本契约重做，U7 封装时按此挂载。
 
+## D-15 `[代拍]` 封装契约：插槽/children = 页码面，page 唯一受控
+
+两个封装（`@x-ac/filpbook-vue` / `@x-ac/filpbook-react`）共用一套契约：
+内容 = 默认插槽（Vue，跳过注释与空白、Fragment 展平）/ children（React，
+Children.toArray）按序对号页码面；除 `page` 外的 props 是**挂载时快照**
+（改尺寸/模式请换 key 重建），`page` 唯一响应式——外部变更走 goTo，
+core 的 change 回来走 `update:page`（v-model:page）/ `onPageChange`。
+命令式入口：Vue 模板 ref 拿 `{ goTo, book }`；React 用 `apiRef` prop
+（不用 React 19 的 ref-as-prop，peer 依赖放宽到 18）。宿主在实例创建后
+预建（1..total），Teleport/createPortal 渲染进去；Vue 的 destroy 挂
+onUnmounted（先撤内容再拆 core，D-04 顺序），React 由卸载序自然保证。
+
+- 依据：D-01/D-04 已定内容模型与宿主所有权，插槽序号即页码是自然映射；
+  选项快照是命令式内核组件的常规取舍，page 单独响应式覆盖最常见的受控需求。
+- 可逆性：低-中（公开契约，但可增量扩展：非受控模式、更多命令式方法都不破坏现状）。
+- 退路：真需要选项响应式时，文档化 key 重建或做选项 diff 重建。
+- 双包构建注记：typecheck 的 paths 直连 core 源码；build 的 paths 指向
+  core 的 dist 声明（pnpm -r 拓扑序保证 core 先建）。`@types/react(-dom)`
+  缺失与根 tsconfig paths 的扩展名错（.ts↔.tsx）都会让 tsc 直接内部崩溃
+  而非报诊断；vite 配 optimizeDeps.include 防首次请求预构建撞 headless
+  虚拟时间；shoot.mjs 加看门狗（--watchdog，默认 120s）防 Edge 僵死拖死取证。
+
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
 旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实现的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。

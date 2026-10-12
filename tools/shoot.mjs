@@ -32,7 +32,7 @@ const query = argv.filter((a) => !a.startsWith('--')).join('&')
 const w = flags.w || 1280
 const h = flags.h || 800
 const budget = flags.budget || 6000
-const BASE = `http://localhost:${PORT}/tools/${flags.html || 'smoke'}.html`
+const BASE = `http://localhost:${PORT}/${flags.html ? (String(flags.html).includes('/') ? flags.html : `${flags.html}.html`) : 'tools/smoke.html'}`
 const out = resolve(ROOT, '.shots', `${name}.png`)
 mkdirSync(dirname(out), { recursive: true })
 
@@ -86,11 +86,17 @@ const args = [
 const dump = !!flags.dump
 let stdout = ''
 let err = ''
+const watchdogMs = Number(flags.watchdog || 120_000)
 const code = await new Promise((done) => {
   const p = spawn(edge, args, { stdio: ['ignore', dump ? 'pipe' : 'ignore', 'pipe'] })
   if (dump) p.stdout.on('data', (d) => { stdout += d.toString() })
   p.stderr.on('data', (d) => { err += d.toString() })
-  p.on('close', done)
+  // 看门狗：Edge 僵死（virtual-time 卡住等）不能拖死取证，强杀并按失败收场
+  const watchdog = setTimeout(() => {
+    err += `\n[shoot] watchdog: ${Math.round(watchdogMs / 1000)}s 未退出，强杀`
+    try { p.kill() } catch { /* 已退出 */ }
+  }, watchdogMs)
+  p.on('close', () => { clearTimeout(watchdog); done(0) })
 })
 
 if (dump) {
