@@ -31,7 +31,8 @@ const page = ref(1)
 </script>
 
 <template>
-  <!-- 容器需要宽高；fit 默认 contain，书等比缩放并居中 -->
+  <!-- 容器需要宽高；fit 默认 contain，书等比缩放并居中
+       容器别加 overflow:hidden：翻页时纸面会像真书一样越出书矩形，四周要预留空间 -->
   <FlipBook v-model:page="page" :page-count="10" :width="400" :height="600" style="width: 800px; height: 600px">
     <div v-for="p in 10" :key="p" class="page">第 {{ p }} 页</div>
   </FlipBook>

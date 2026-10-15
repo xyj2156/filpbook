@@ -161,13 +161,16 @@ export class FlipBook {
     if (getComputedStyle(el).position === 'static') el.style.position = 'relative'
 
     const book = bookSizeOf(this.size, this.display)
+    // 书容器自身不裁剪（D-19）：折页时纸面要能越出书矩形——折点允许拖出页外
+    // （geometry.clampFoldPoint），翻完/弹回的轨迹也会越过书边，真书就长这样。
+    // 各裁切职责都在更内层：半本裁切框、对角容器、折层 fwrapper 各自 overflow hidden；
+    // 越出书后的空间由宿主页负责预留（不要在挂载元素上加 overflow:hidden）。
     this.bookEl = box({
       position: 'absolute',
       left: '0',
       top: '0',
       width: `${book.width}px`,
       height: `${book.height}px`,
-      overflow: 'hidden',
       transformOrigin: '0 0',
     })
     this.stageEl = box({

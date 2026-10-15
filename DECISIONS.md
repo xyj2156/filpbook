@@ -238,6 +238,22 @@ ESM——CDN 用法只是文档问题。浏览器直引产物由 `vite build`（
 - 退路：多文件 AMD 若真有按需加载需求再回 tsc 产物（nodeIdCompat 配方
   在 git 历史 103c716）。
 
+## D-19 `[代拍]` 书容器不裁剪：折页纸面可越出书矩形，越界空间归宿主页
+
+bookEl 原带 `overflow:hidden`——折点拖出页外时（`clampFoldPoint` 允许
+y ∈ ±diag，横向被 `clampCornerX` 夹在页内），越界折点的纸面会越出书矩形，
+被这层齐边切成直线口子，像被书框关住（取证 `.shots/y-over-700-before.png`
+对拍 after 与 `y-over-top.png`：改前底边切平、改后自然垂出/扬出）。
+裁切职责本就在更内层——半本裁切框、对角容器、折层 fwrapper 各自
+`overflow:hidden` 原样未动；bookEl 这层不承担其他裁剪（wrap 全部恰好
+书内、stage 独立在书外），直接移除。代价是一条嵌入契约：**宿主容器不要
+加 overflow:hidden，书四周要预留越界空间**（README 快速开始已注明）；
+越出的纸面画在书矩形之外、挂载元素之内，盖在相邻内容上属预期行为。
+
+- 依据：用户点名「翻页要像真书一样，不被 overflow 隐藏」。
+- 可逆性：高（还原一行 CSS 即可，无数据/契约迁移）。
+- 退路：真有「想关回书框」的用法，再加选项还原；在那之前不做预设。
+
 ## 从旧半成品里继承的结论（已核对，非重写风险）
 
 旧 `packages/core/src/PageFlip.ts` 的 `_fold` 数学与 turn.js 4.1 `sheet` 分支逐式一致（`_c`/`_c2`/`compute`/`transform`/`mv`/`px`/`df`/gradient 参数全对得上），所以本仓库直接以 turn.js 为源重写这几式，不引入回归风险。旧实现的问题在外层：无 range 管理导致漏画、single 模式语义自创、封装无 slot、`utils.ts` 顶层访问 `window` 破坏 SSR。
