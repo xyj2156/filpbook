@@ -8,6 +8,7 @@
 - **作用域 `@x-ac` 必须是你名下的**（你的 npm 用户名，或你已创建且为 owner 的组织）。否则首发直接 403，与发布方式无关。
 - **仓库需为 public 才会生成 Provenance 绿标**；private 仓库 OIDC 仍可发，但无 provenance。
 - 本机 `npm login` 已完成、能过 2FA。CI 侧要求 Node ≥ 22.14、npm ≥ 11.5.1（仓库用 Node 24 / npm 12，满足）。
+- **直发（全自动）的硬前置：关掉 Staged Publishing。** 若账号/包启用了分阶段发布，`publish` 会先落一个 `0.0.0-stage` 占位版本、等人工审批才转正——本地种子就是因此留下了 `0.0.0-stage`（清理见下一节）。CI 的 `pnpm -r publish` 也必须是直发；被 staged 卡住的话，tag 触发的「自动发布」并不会真正自动。位置：npm → 账号/Org → `Settings → Publishing access`，以及每个包 → `Settings → Publishing`；选普通两因素发布（或「disallow tokens」），**不要**选 staged/pending。
 
 ## 第一步 · 一次性手动种子（发 0.1.0）
 
@@ -29,6 +30,20 @@ pnpm -r publish --access public --no-git-checks
 >
 > **本地手动发布不要加 `--provenance`**——它只在 GitHub Actions 的 OIDC 环境里能生成，本地会报 `ERR_PNPM_PROVENANCE_UNSUPPORTED_PROVIDER`。Provenance 由 `publish.yml` 从 v0.1.1 起自动附带（且需仓库为 public）。
 
+## 清理 0.0.0-stage 占位版本（一次性，需你本地终端）
+
+种子发布时若走了 staged 流程，每个包会留下一条 `0.0.0-stage`（非 `latest`，不影响安装，但脏）。`latest` 是 `0.1.0`，删占位版本不影响它。72 小时内可撤销单版本：
+
+```bash
+npm unpublish @x-ac/filpbook-core@0.0.0-stage
+npm unpublish @x-ac/filpbook-vue@0.0.0-stage
+npm unpublish @x-ac/filpbook-react@0.0.0-stage
+# 核对：versions 应只剩 0.1.0
+npm view @x-ac/filpbook-core versions --json
+```
+
+然后**关掉 Staged Publishing**（见「关键前提」），否则下次发版又会生成 `0.0.0-stage`。
+
 ## 第二步 · 绑定可信发布者（每个包各一次）
 
 推荐用 CLI（需 npm ≥ 11.15；本仓库用 npm 12）。对**每个**包执行：
@@ -45,7 +60,7 @@ npm trust list @x-ac/filpbook-core    # 核对：仓库/工作流文件/环境/�
 
 ## 第三步 · 建 GitHub Environment
 
-仓库 `Settings → Environments → New environment`，名称填 `npm`（可与 npm 侧一致；可先不设保护规则）。若日后要「发布前人工审批」，在该环境加 Required reviewers，并把可信发布者权限改为只允许 `npm stage publish`。
+仓库 `Settings → Environments → New environment`，名称填 `npm`。**直发取向：不要给它加 Required reviewers 或任何部署保护规则**（加了就把「自动发布」变成人工点批准，与全自动矛盾）——这个环境只是让 OIDC 令牌带上 `environment=npm` 身份、与 npm 侧 `--env npm` 对齐。（日后若要人工审批，再回来加 reviewers，并把可信发布者权限改成只 `--allow-stage-publish`。）
 
 ## 后续发布（全自动）
 
@@ -73,7 +88,7 @@ Actions 页看该 run 绿；npm 包页应出现新版本与 Provenance（public 
 
 ## 收尾加固（首次 OIDC 发布成功后）
 
-到 `Packages → 选包 → Settings → Publishing access`，改为 **Require two-factor authentication and disallow tokens**——禁止传统 token 发布，但**不影响** OIDC 可信发布者。这样即便从未存过 token，也彻底关死旁路。
+到 `Packages → 选包 → Settings → Publishing access`，改为 **Require two-factor authentication and disallow tokens**——禁止传统 token 发布，但**不影响** OIDC 可信发布者。这样即便从未存过 token，也彻底关死旁路。注意这一项管的是「token 旁路」，与 Staged Publishing 是两回事：直发请保持 **staged 关闭 + disallow tokens** 的组合，别把包设成只允许 staged/pending。
 
 ## 常见故障
 
