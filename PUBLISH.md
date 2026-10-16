@@ -22,10 +22,12 @@ pnpm -r exec pnpm pack --dry-run
 
 # 全量门禁后发布三个包（按依赖序 core → vue → react）
 pnpm typecheck && pnpm test && pnpm build
-pnpm -r publish --access public --provenance --no-git-checks
+pnpm -r publish --access public --no-git-checks
 ```
 
 > 各包的 `publishConfig.access` 已是 `public`，`--access public` 只是双保险。首发若拿不准是否设 `latest`，可加 `--tag next` 先挂预览标签，确认无误再 `npm dist-tag add`。
+>
+> **本地手动发布不要加 `--provenance`**——它只在 GitHub Actions 的 OIDC 环境里能生成，本地会报 `ERR_PNPM_PROVENANCE_UNSUPPORTED_PROVIDER`。Provenance 由 `publish.yml` 从 v0.1.1 起自动附带（且需仓库为 public）。
 
 ## 第二步 · 绑定可信发布者（每个包各一次）
 
