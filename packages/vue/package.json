@@ -15,8 +15,8 @@
   },
   "files": ["dist", "README.md"],
   "scripts": {
-    "build": "vite build && vue-tsc -p tsconfig.build.json",
-    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepublishOnly": "pnpm typecheck && pnpm build"
   },
   "repository": {
