@@ -1,6 +1,6 @@
 {
   "name": "@x-ac/filpbook-vue",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Vue 3 wrapper for @x-ac/filpbook-core",
   "sideEffects": false,
