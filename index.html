@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>flipbook · 导航</title>
+    <style>
+      :root {
+        --bg: #26262a;
+        --card: #2f2f35;
+        --card-hover: #37373f;
+        --fg: #eee;
+        --muted: #9a9aa4;
+        --line: #3d3d45;
+        --accent: #7aa2f7;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body {
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--fg);
+        font: 14px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+        padding: 48px 24px;
+      }
+      main { max-width: 760px; margin: 0 auto; }
+      header h1 { font-size: 26px; font-weight: 600; margin: 0 0 4px; letter-spacing: .02em; }
+      header p { margin: 0; color: var(--muted); }
+      section { margin-top: 36px; }
+      h2 {
+        font-size: 13px; font-weight: 600; text-transform: uppercase;
+        letter-spacing: .08em; color: var(--muted); margin: 0 0 14px;
+      }
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+      a.card {
+        display: block; text-decoration: none; color: inherit;
+        background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+        padding: 16px 18px; transition: background .15s ease, border-color .15s ease;
+      }
+      a.card:hover, a.card:focus-visible { background: var(--card-hover); border-color: var(--accent); outline: none; }
+      a.card .t { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+      a.card .d { color: var(--muted); font-size: 13px; }
+      a.card code {
+        display: inline-block; margin-top: 10px; font: 12px/1.4 ui-monospace, "Cascadia Code", Consolas, monospace;
+        color: var(--accent); word-break: break-all;
+      }
+      .tag {
+        font-size: 11px; color: var(--muted); border: 1px solid var(--line);
+        border-radius: 999px; padding: 1px 8px; margin-left: 8px; vertical-align: middle;
+      }
+      footer { margin-top: 44px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+      footer code { color: var(--fg); font-family: ui-monospace, Consolas, monospace; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>flipbook</h1>
+        <p>框架无关的翻书（page-curl）引擎 · 本地导航</p>
+      </header>
+
+      <section>
+        <h2>框架演示</h2>
+        <div class="grid">
+          <a class="card" href="/playground/index.html">
+            <div class="t">Vue 3</div>
+            <div class="d">FlipBook 组件，v-model:page 受控换页</div>
+            <code>/playground/index.html</code>
+          </a>
+          <a class="card" href="/playground/react.html">
+            <div class="t">React</div>
+            <div class="d">FlipBook 组件，onPageChange + apiRef</div>
+            <code>/playground/react.html</code>
+          </a>
+        </div>
+      </section>
+
+      <section>
+        <h2>引擎取证</h2>
+        <div class="grid">
+          <a class="card" href="/tools/smoke.html?page=3&fold=br:0.5">
+            <div class="t">smoke<span class="tag">确定性 query</span></div>
+            <div class="d">核心引擎直挂，用参数还原任意折角 / 拖拽帧</div>
+            <code>/tools/smoke.html?page=3&amp;fold=br:0.5&amp;dump=1</code>
+          </a>
+          <a class="card" href="/tools/umd.html">
+            <div class="t">UMD 产物<span class="tag">需 build</span></div>
+            <div class="d">RequireJS 加载 packages/core 的 UMD 包实测</div>
+            <code>/tools/umd.html</code>
+          </a>
+          <a class="card" href="/tools/iife.html">
+            <div class="t">IIFE 产物<span class="tag">需 build</span></div>
+            <div class="d">全局 filpbook 变量的 IIFE 包实测</div>
+            <code>/tools/iife.html</code>
+          </a>
+        </div>
+      </section>
+
+      <footer>
+        先起 dev server：<code>pnpm dev</code> → <code>http://localhost:5199</code>。
+        UMD / IIFE 页依赖构建产物，需先跑 <code>pnpm build</code>。
+      </footer>
+    </main>
+  </body>
+</html>
