@@ -117,6 +117,10 @@ pnpm dev         # http://localhost:5199
 
 架构决策（每条含依据 / 可逆性 / 退路）见 [DECISIONS.md](DECISIONS.md)。
 
+## 致谢
+
+本引擎的卷角（page-curl）几何与翻页交互手感，参考并重写自 [turn.js](https://github.com/blasten/turn.js) 4.1 的 `sheet`（卷角）分支，作者 [Emmanuel García](https://github.com/blasten)（@blasten）。turn.js 以 jQuery 插件形态树立了 HTML5 仿真翻书的标杆，其折页数学与分段时间动画的处理思路是本项目最直接的灵感来源。本仓库将其核心几何抽象为零依赖的纯函数重写，未复制 turn.js 代码；turn.js 本体遵循其非商业 BSD 许可。谨此致谢。
+
 ## License
 
 [MIT](LICENSE)
