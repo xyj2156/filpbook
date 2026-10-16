@@ -1,0 +1,66 @@
+name: Publish to npm
+
+# 触发：推一个 v* tag（如 v0.1.1）即发布；也可在 Actions 页手动 Run。
+# 注意：npm 的 Trusted Publishing（OIDC）无法发布一个包的「第一个版本」
+# （可信发布者只能绑定到已存在的包）。所以 v0.1.0 需先手动种子发布一次，
+# 本 workflow 从第二个版本起接管全自动发布。见 PUBLISH.md。
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+# 同一时刻只允许一个发布任务，且运行中不可被取消。
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+# 最小权限：contents 只读用于检出；id-token 用于向 GitHub 申请 OIDC 令牌。
+# 刻意不声明任何 npm 相关 secrets —— 发布身份完全由 OIDC 可信发布者换取。
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # 必须与 npmjs 上「Trusted Publisher」登记的 Environment 名一致；
+    # 也要在 GitHub 仓库 Settings → Environments 里建同名环境。
+    environment: npm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # pnpm 版本由根 package.json 的 packageManager 字段决定（与本地一致）。
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      # registry-url 仅写入指向 npmjs 的 .npmrc（不设 NODE_AUTH_TOKEN → 纯 OIDC）。
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 全量门禁：任一包构建/测试失败都在此早停，且此时尚未产生任何对外发布。
+      - name: Typecheck, test, build
+        run: |
+          pnpm typecheck
+          pnpm test
+          pnpm build
+
+      # 上传前预览 tarball 清单，避免误把 src/测试/lockfile 打进包。
+      - name: Preview packed contents
+        run: pnpm -r exec pnpm pack --dry-run
+
+      # --ignore-scripts：dist 已在上一步产出，跳过各包 prepublishOnly 的重复构建，
+      # 也杜绝「发布钩子递归再触发 publish」。--provenance 生成来源证明（需 public 仓库）。
+      # --no-git-checks：Actions 检出为 detached tag，关闭 pnpm 的干净工作区检查。
+      - name: Publish
+        run: pnpm -r publish --access public --provenance --no-git-checks --ignore-scripts

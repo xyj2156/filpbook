@@ -113,7 +113,7 @@ pnpm dev         # http://localhost:5199
 - 引擎取证页：`/tools/smoke.html`，支持 `?page=3&fold=br:0.5&drag=hold:br:200,500` 等确定性 query
 - 双框架演示：`/playground/index.html`（Vue）与 `/playground/react.html`
 - 视觉取证链路：`node tools/shoot.mjs <name> "<query>" [--dump=1]`，无头 Edge 截图 / DOM 序列化落 `.shots/`；`/tools/umd.html`、`/tools/iife.html` 分别是 UMD 与 IIFE 产物的加载实测页
-- 发布：`pnpm -r publish`（内部依赖用 `workspace:*`，必须走 pnpm 做版本替换；prepublishOnly 会先跑测试/构建）
+- 发布：GitHub Actions + npm Trusted Publishing（OIDC，无长期 token），见 [PUBLISH.md](PUBLISH.md)。首个版本（`v0.1.0`）需手动种子发布一次（OIDC 无法发不存在的包），之后打 `v*` tag 由 [`.github/workflows/publish.yml`](.github/workflows/publish.yml) 全自动。内部依赖用 `workspace:*`，pnpm 发布时替换为真实版本。
 
 架构决策（每条含依据 / 可逆性 / 退路）见 [DECISIONS.md](DECISIONS.md)。
 
