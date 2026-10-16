@@ -158,8 +158,7 @@ renderInfo()
 book.on('change', renderInfo) // 松手动画落地后才换页，提示行要跟着刷新
 stage.appendChild(info)
 
-// ?dump=1 → 把整棵 DOM 的矩形与 inline style 打出来，配合 msedge --dump-dom
-// 与 tools/ref.html（真 turn.js）逐元素比对
+// ?dump=1 → 把整棵 DOM 的矩形与 inline style 打出来，配合 msedge --dump-dom 逐元素自查
 if (q.get('dump')) dumpdom(stage)
 
 ;(window as unknown as { __book: FlipBook }).__book = book
