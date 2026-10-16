@@ -114,6 +114,7 @@ pnpm dev         # http://localhost:5199
 - 双框架演示：`/playground/index.html`（Vue）与 `/playground/react.html`
 - 视觉取证链路：`node tools/shoot.mjs <name> "<query>" [--dump=1]`，无头 Edge 截图 / DOM 序列化落 `.shots/`；`/tools/umd.html`、`/tools/iife.html` 分别是 UMD 与 IIFE 产物的加载实测页
 - 发布：GitHub Actions + npm Trusted Publishing（OIDC，无长期 token），见 [PUBLISH.md](PUBLISH.md)。首个版本（`v0.1.0`）需手动种子发布一次（OIDC 无法发不存在的包），之后打 `v*` tag 由 [`.github/workflows/publish.yml`](.github/workflows/publish.yml) 全自动。内部依赖用 `workspace:*`，pnpm 发布时替换为真实版本。
+- 依赖策略：devDependencies 一律跟随最新（当前 Vite 8 / Rolldown 引擎）。**唯一例外**——`typescript` 锁 `^5.9`：`vue-tsc` 3.x 依赖 TS 的 `lib/tsc` 子路径，TypeScript 7（原生编译器）已移除该导出，升到 7 会让 `packages/vue` 构建报 `ERR_PACKAGE_PATH_NOT_EXPORTED`；`^5.9.3` 的 range 本身也挡住了 `pnpm update -r` 越界。待 vue-tsc 适配 TS7 后再解除。
 
 架构决策（每条含依据 / 可逆性 / 退路）见 [DECISIONS.md](DECISIONS.md)。
 
