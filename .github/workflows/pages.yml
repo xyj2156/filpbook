@@ -1,0 +1,67 @@
+name: Deploy demo to GitHub Pages
+
+# 触发：main 分支有推送即重新部署示例站；也可在 Actions 页手动 Run。
+# 站点：https://xyj2156.github.io/filpbook/ （仓库 Settings → Pages 已设为「GitHub Actions」构建来源）
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 同一时刻只跑一个部署，但进行中的部署不可被打断取消（避免站点停在半截产物上）。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+# 最小权限：检出只读；pages 用于上传/部署产物。刻意不需要 contents: write。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # pnpm 版本由根 package.json 的 packageManager 字段决定（与本地、与发布任务一致）。
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 构建公开示例站。脚本自带「零断链」自检：站内每条 href/src 必须在产物里落到真实文件，
+      # 且绝对路径必须带 /<仓库名>/ 前缀，否则此处直接失败——宁可不上，也不上半数 404 的站。
+      # UMD / IIFE 取证页依赖本机 dist 产物，刻意不公开部署（脚本里按卡片摘除）。
+      - name: Build Pages site
+        run: node tools/pages.mjs --repo="${{ github.repository }}"
+
+      # 上传/部署走官方 Pages 组件，产物目录就是 vite 输出的 dist/。
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
