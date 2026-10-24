@@ -1,0 +1,12 @@
+# 关联资源
+blank_issues_enabled: true
+contact_links:
+  - name: 在线示例 / Live demo
+    url: https://xyj2156.github.io/filpbook/
+    about: Vue 3 / React 两个可跑示例，以及 tools/smoke.html 引擎取证页（支持确定性参数还原任意一帧）
+  - name: 架构决策 / Design decisions
+    url: https://github.com/xyj2156/filpbook/blob/main/DECISIONS.md
+    about: 每条决策含依据、可逆性、退路。提功能请求前先看看是否已被讨论并否决
+  - name: 发布流程 / Publishing
+    url: https://github.com/xyj2156/filpbook/blob/main/PUBLISH.md
+    about: npm Trusted Publishing（OIDC，无长期 token）的一次性种子、可信发布者绑定与故障排查

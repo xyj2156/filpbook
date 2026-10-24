@@ -1,0 +1,92 @@
+name: 🐛 Bug 报告 / Bug report
+description: 折角算错、翻页卡顿、样式错位等任何与预期不符的行为 —— 带上能还原那一帧的确定性参数
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! 感谢反馈。
+        引擎的折页几何是纯函数，任何一帧都能用 query 参数还原 —— 请尽量带上它，这通常比截图更快定位。
+  - type: dropdown
+    id: package
+    attributes:
+      label: 涉及哪个包 / Which package
+      description: 不确定就选 core（封装层只是把 core 挂进宿主）
+      options:
+        - "@x-ac/filpbook-core"
+        - "@x-ac/filpbook-vue"
+        - "@x-ac/filpbook-react"
+        - 文档 / 示例站 Docs or demo site
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / Version
+      description: 贴出 `npm ls @x-ac/filpbook-core` 的结果，或你锁定的版本号
+      placeholder: "0.1.1"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么 / What happened
+      description: 现象 + 你期望看到什么。多条现象请分条列。
+      placeholder: |
+        现象：双页模式下拖右下角翻页，松手后折角停在半开状态。
+        期望：松手后按方向续翻或回弹到整页。
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 最小复现 / Minimal reproduction
+      description: |
+        能贴代码就贴代码；能改示例站最好 —— 打开 https://xyj2156.github.io/filpbook/tools/smoke.html
+        用参数还原到你出问题的那一帧，然后把整条 URL 贴过来（页面带 `&dump=1` 还会输出逐元素几何清单，直接贴它更准）。
+      render: shell
+      placeholder: |
+        https://xyj2156.github.io/filpbook/tools/smoke.html?page=3&fold=br:0.5&dump=1
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+  - type: dropdown
+    id: os-browser
+    attributes:
+      label: 运行环境 / Environment
+      description: 引擎只依赖 Pointer Events 与 CSS transform，理论上跨浏览器一致；列出环境是为了排除特定实现差异
+      options:
+        - Chrome / Edge (Windows)
+        - Chrome / Edge (macOS)
+        - Safari (macOS)
+        - Safari (iOS)
+        - Firefox
+        - Android WebView / Chrome
+        - 其他 / Other
+  - type: input
+    id: container
+    attributes:
+      label: 宿主容器情况 / Host container
+      description: 容器宽高、是否加了 overflow:hidden（引擎刻意不裁剪，折页会越出书矩形）
+      placeholder: "800x600，无 overflow 设置"
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认 / Before submitting
+      options:
+        - label: 我已搜索过现有 issue，没有重复
+          required: true
+        - label: 我用最新版本（或 main）复现过，问题仍在
+          required: true
+        - label: 我可以提交一个修复 PR（可选，但欢迎）
+          required: false

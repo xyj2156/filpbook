@@ -1,0 +1,55 @@
+name: ✨ 功能请求 / Feature request
+description: 新效果（如非卷角的平移/推移）、新选项、新的命令式入口
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        先说结论：v0.1 只做 sheet（卷角）一种效果，这是写进 DECISIONS.md 的决策（D-05），不是能力上限。
+        想要别的效果，请在下面说清「用它要解决什么问题」，而不是「加个 xxx 参数」。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解决什么问题 / What problem does this solve
+      description: 用真实场景描述。有没有现成的翻书产品做到了？它是怎样的交互？
+      placeholder: |
+        我们的画册是竖排长图，双页卷角会让文字被书脊压住，需要一个「整页平移」的换页方式。
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: 你设想的用法 / Proposed API
+      description: 请给出 Vue 与 React 两边各一段代码，说明它作为 prop / 事件 / 命令式入口哪一种最合适
+      placeholder: |
+        Vue：  <FlipBook effect="slide" :duration="450" v-model:page="page">…</FlipBook>
+        React：<FlipBook effect="slide" duration={450} page={page} onPageChange={setPage} />
+  - type: dropdown
+    id: layer
+    attributes:
+      label: 改动落在哪一层 / Which layer
+      description: 几何与交互在 core，封装层原则上只做挂载与 props 透传
+      options:
+        - core（几何 / 布局 / 交互 / 动画）
+        - 仅 @x-ac/filpbook-vue
+        - 仅 @x-ac/filpbook-react
+        - 两端封装都要
+        - 文档 / 示例站
+  - type: textarea
+    id: workaround
+    attributes:
+      label: 现在的绕法 / Current workaround
+      description: 你已经怎么勉强实现的？绕法有多难受？没有就写「无」。
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认 / Before submitting
+      options:
+        - label: 我已搜索过现有 issue 与 DECISIONS.md，没有重复或已被明确否决
+          required: true
+        - label: 我理解 0.x 阶段 API 仍可能调整，接受该请求被关闭或改形态落地
+          required: true
+        - label: 我愿意提 PR（可选；先在这里对齐方案再动手，省双方时间）
+          required: false
